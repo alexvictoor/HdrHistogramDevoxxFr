@@ -1,0 +1,89 @@
+latence: pourquoi des histograms, pas de moyennes
+il faut au moins garder la valeur max, mais pas suffisant
+exemple d'un site web
+
+hdrhistogram en java mais aussi dans plein d'autres technos
+
+comment on fait sans hdrhistograms:
+- on log tout et on envoie dans hdrhistograms
+- on utilises metrics
+
+ne pas modifier le comportement du système en l'instrumentant
+difficultées de mesurer la latence: garder toutes les valeurs
+
+metrics, les histograms bof bofs
+
+L'histoire
+giltene, jHiccup
+
+
+l'api - basique
+recordValue(long)
+
+
+comment on économise de la mémoire
+hdrhistogram comment ça marche
+les buckets, sub buckets
+enregistrements ultra rapide
+lecture un peu moins
+emprunte mémoire prévisible
+optims memory aligment, wait free
+
+Tuning
+espace mémoire
+le resize
+gestion de la concurrence
+
+les benchs
+question à l'assemblée
+coordinated ommisions
+démo js, avec blocage un peu trop long
+
+
+Plusieurs moyen de restituer les données
+- à chaud, en live, démo
+- à froid
+- rapport
+
+Histogram avec fenetre mouvante
+API - arythmétique des histograms
+- serialization
+Hdrhistogram et les logs
+DEMO
+
+focus sur hdrhistogramjs
+
+
+TODO
+recorder et log writer
+metrics avec HDrhistogram
+bench serialization
+bench ajout d'histograms
+regarder les algos wait free
+jHiccup
+double histogram
+exemples de benchs pour illustrer les features
+bench m+ (avec plusieurq gc)
+log iterator
+
+
+ne pas oublier le why
+benchmark
+monitoring
+impact de mauvaises mesures
+
+
+TODO
+schema jhiccup recorder + logger
+faire tourner xls jhiccup
+lancer logprocessor
+images sur des mesures
+images stress test
+images monitoring
+metrics avec hdr reservoir
+
+
+Intro sur les SLA et les besoins de perfs
+
+
+
