@@ -87,3 +87,43 @@ Intro sur les SLA et les besoins de perfs
 
 
 
+
+
+PLAN
+- le why
+ les slas
+ la difficultée de mesurer la latence
+ un site web avec plusieurs resources
+ les moyennes...
+
+- hdrhistogram c'est quoi ?
+gil tene
+des implems dans differentes technos
+
+l api - version basique
+
+graph
+
+comment ça marche
+la représentation de la distribution en mémoire
+optimisé pour l'écriture
+
+Question à l'assemblée - benchs, coordinated ommissions
+Retour sur jhiccup
+
+corrections à froid à chaud
+
+suivre la latence sur une longue durée
+exemple jhiccup
+les fichiers hlogs
+compressions 
+implem jhiccup avec recorder
+
+log analyzer
+(conclusion ça sera plus julie plus tard)
+
+
+
+
+
+

@@ -7,10 +7,21 @@
 		<title>reveal.js</title>
 
 		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+		<link rel="stylesheet" href="css/theme/serif.css">
 
 		<!-- Theme used for syntax highlighting of code -->
 		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<style>
+
+			html.img-left div.slide-background.present {
+    		background-position: left;
+			}
+
+			table.schema, th, table.schema td {
+   			border: 1px solid black;
+			}
+		</style>
 
 		<!-- Printing and PDF exports -->
 		<script>
@@ -24,10 +35,503 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
-		</div>
+
+
+<section>
+	<h2>HdrHistogram</h2>
+	<h3>l'outil indispensable pour mesurer la latence</h3>
+	<aside class="notes">
+		Qui mesure ces temps de réponses
+		sondage qui a déjà utilisé HdrHistogram ?
+		une autre implem d'histogram, celle d'elasticsearch ou metrics de codahale ?
+	</aside>
+</section>
+
+<section>
+	<h2>MYSELF</h2>
+	<p style="text-align: left;">
+		Alexandre Victoor<br/>
+		Architecte à la SGCIB<br/>
+		alexvictoor@gmail.com<br/>
+		https://github.com/alexvictoor<br/>
+		@alex_victoor
+	</p>
+	<aside class="notes">
+		HdrHistogram porté en JavaScript
+	</aside>
+</section>
+<section data-background="gil-tene-java.jpg" data-background-size="40%">
+	<h3>&nbsp;</h3>
+	<h3>&nbsp;</h3>
+	<h3>&nbsp;</h3>
+	<h3>&nbsp;</h3>
+	<h3>
+		<span style="color: red; background-color: black">@giltene</span>
+	</h3>
+</section>
+<section>
+	<h3>HdrHistogram</h3>
+	<img src="Duke-Guitar.png" width="30%" style="border: 0px" />
+	<img src="golang.png" width="15%" style="border: 0px" class="fragment fade-up"/>
+	<img src="python.png" width="20%" style="border: 0px" class="fragment fade-up"/>
+	<img src="The_C_Programming_Language_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up"/>
+	<img src="csharp.png" width="20%" style="border: 0px" class="fragment fade-up"/>
+	<img src="Erlang_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up"/>
+	<img src="Rust_programming_language_black_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up"/>
+	<img src="Unofficial_JavaScript_logo_2.svg.png" width="20%" style="border: 0px" class="fragment fade-up"/>
+	
+	<aside class="notes">
+		HdrHistogram permet de gérer des histograms, des statistiques sur des temps de réponses et du comportement d'un ssystème
+		Java et d'autre technos
+	</aside>
+</section>
+
+<section data-background="_Time_-_is_money_095207_.jpg">
+	
+	<h3 style="background-color: black; color: red; font-weight: bold">Every 100ms of latency costs Amazon 1% of profit</h3>
+	
+	<aside class="notes">
+		http://www.zastavki.com/pictures/originals/2015/_Time_-_is_money_095207_.jpg
+		Pourquoi je vous parle aujourd'hui de latence ?
+		corrélation entre latence et chiffre d'affaire
+		finance, la latence ça parle au métier
+	  pour savoir si on répond au besoin, si on respect un niveau de service, un SLA, pas de secret il faut mesurer
+	</aside>
+</section>
+
+<section section data-background-color="#FFF" data-background-iframe="./Anscombe/index.html">
+	<aside class="notes">
+	Pour démarer en douceur
+	les moyennes c'est bien mais c'est rarement suffisant
+	</aside>
+</section>
+<section>
+	<img src="be_above_average.jpg" />
+	<aside class="notes">
+		Moyenne c'est surti utile lorsque les valeurs sont réparti suivant une loi normale
+		C'est le cas quand on a des valeurs aléatoires
+		Quand on parle de latences sur un sys informatique, ce n'est pas le cas, on a souvent des phénomènes d'accumulations, des valeurs
+		 isolées, des valeurs très éloignées de la moyenne
+	</aside>
+</section>
+<section data-background="brexit.png" data-background-size="80%">
+	<aside class="notes">
+		wikipedia
+En statistiques, un histogramme est un graphique permettant de représenter la répartition d'une variable continue.
+Un histogram c'est un outil graphique qui permet de représenter la répartition d'un ensemble de données
+	</aside>	
+</section>
+
+<section data-background="iosnoop_hist_full6.png" data-background-size="95%">
+
+	<aside class="notes">
+Les percentiles ?
+Le principe on trie les données, ensuite on cherche les 100 valeurs qui permetttent de séparer les valeurs observées en 100 parts égales,
+le 50eme => valeur médiane
+	</aside>
+</section>
+
+
+<section data-background="iosnoop_hist_full6_bis.png" data-background-size="95%">
+
+	<aside class="notes">
+Les percentiles ?
+Le principe on trie les données, ensuite on cherche les 100 valeurs qui permetttent de séparer les valeurs observées en 100 parts égales,
+le 50eme => valeur médiane
+	</aside>
+</section>
+
+<section>
+	TODO stats Amazon
+</section>
+
+<section data-background-color="#FFF" data-background="hdr.example.png" data-background-size="100%">
+	<h1 class="fragment">DEMO</h1>
+</section>
+
+
+<section>
+	<h3>L'API</h3>
+<pre>
+	<code data-trim class="fragment java">
+long before = System.nanoTime();
+
+// ce que l'on mesure
+SUT.call();                   
+
+long duration = System.nanoTime() - before;
+
+// ensuite on fait quoi ???
+		</code>
+</pre>
+	<aside class="notes">
+		Techniquement ce n'est pas simple'
+			emprunte mémoire
+			impact sur le cpu la latence
+	</aside>
+</section>
+
+<section>
+	<h3>L'API</h3>
+	<pre>
+		<code data-trim class="java">
+long before = System.nanoTime();
+
+SUT.call();                  
+
+long duration = System.nanoTime() - before;
+
+histogram.recordValue(duration);
+		</code>
+<aside class="notes">
+	emprunte mémoire controlée
+	pas d'allocation à l'enregistrement
+	impact cpu faible (quelques nano secondes)
+	</aside>
+
+	</pre>
+
+</section>
+
+<section>
+	<h3>L'API</h3>
+	<pre>
+		<code data-trim class="java">
+// initialisation
+Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
+
+// enregistrement
+histogram.recordValue(duration);
+
+// consultation
+histogram.getValueAtPercentile(99);
+histogram.getValueAtPercentile(99.9);
+
+		</code>
+<aside class="notes">
+	emprunte mémoire controlée
+	pas d'allocation à l'enregistrement
+	impact cpu faible (quelques nano secondes)
+	</aside>
+
+	</pre>
+
+</section>
+
+<section  data-transition="fade">
+	<h3>Comment ça marche ?</h3>
+	<p class="fragment fade-up" style="font-weight: small">"HdrHistogram uses exponentially increasing bucket value ranges (the parallel of the exponent portion of a floating point number) with each bucket containing a fixed number (per bucket) set of linear sub-buckets (the parallel of a non-normalized mantissa portion of a floating point number). Both dynamic range and resolution are configurable, with highestTrackableValue controlling dynamic range, and numberOfSignificantValueDigits controlling resolution."</p>
+<aside class="notes">
+	Nitsan Wakart: Hmmm... I'll admit to having difficulty immediately understanding what's happening from the above text
+</aside>
+</section>
+
+<section  data-transition="fade">
+		
+<table>
+	<tr>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+
+		<td></td>
+		<td></td>
+		<td></td>
+		<td><span class="fragment current-visible fade-left" data-fragment-index="2">7</span></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+	</tr>
+</table>
+
+<table>
+	<tr>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+
+		<td></td>
+		<td></td>
+		<td></td>
+		<td><span class="fragment current-visible" data-fragment-index="3">+1</span></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+	</tr>
+</table>
+
+<table class="schema fragment" data-fragment-index="1">
+	<tr>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+	</tr>
+</table>
+
+</section>
+
+
+<section data-transition="fade">
+
+<table>
+	<tr>
+		<td>&nbsp;</td>
+		<td></td>
+		<td></td>
+		<td></td>
+
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+	</tr>
+</table>
+
+<table>
+	<tr>
+		<td>&nbsp;</td>
+		<td></td>
+		<td></td>
+		<td></td>
+
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+	</tr>
+</table>
+
+<table class="schema">
+	<tr>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td><span style="font-weight: bold;">1</span></td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+	</tr>
+</table>
+
+</section>
+
+
+<section data-transition="fade">
+	<h1>123 000</h1>
+</section>
+<section data-transition="fade">
+	<h1>123 999</h1>
+</section>
+<section data-transition="fade">
+	<h1>123 042</h1>
+</section>
+
+
+<section>
+	<h3>Buckets & Sub buckets</h3>
+	<h3>&nbsp;</h3>
+	<table>
+		<tr>
+			<td style="text-align: center; border: 0px">bucket 1</td>
+			<td style="text-align: center; border: 0px" data-fragment-index="1" class="fragment fade-right">bucket 2</td>
+			<td style="text-align: center; border: 0px" data-fragment-index="2" class="fragment fade-right">bucket 3</td>
+		</tr>
+		<tr>
+			<td style="border: 0px">
+				<table class="schema">
+					<tr>
+						<td>&nbsp;</td>
+						<td>&nbsp;</td>
+						<td>&nbsp;</td>
+						<td>&nbsp;</td>
+					</tr>
+				</table>
+			</td>
+			<td style="border: 0px" data-fragment-index="1" class="fragment fade-right">
+				<table class="schema">
+					<tr>
+						<td>&nbsp;&nbsp;&nbsp;</td>
+						<td>&nbsp;&nbsp;&nbsp;</td>
+						<td>&nbsp;&nbsp;&nbsp;</td>
+						<td>&nbsp;&nbsp;&nbsp;</td>
+					</tr>
+				</table>
+			</td>
+			<td style="border: 0px" data-fragment-index="2" class="fragment fade-right">
+				<table class="schema">
+					<tr>
+						<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+					</tr>
+				</table>
+			</td>
+	</tr>
+	<!--<tr>
+		<td style="text-align: center; border: 0px">1</td>
+		<td style="text-align: center; border: 0px">2</td>
+		<td style="text-align: center; border: 0px">4</td>
+	</tr>-->
+</table>
+
+</section>
+<!--
+<section>
+	<table>
+		<tr>
+			<th>Chiffres significatifs</th>
+			<th>Taille des buckets</th>
+		</tr>
+		<tr>
+			<td>2</td>
+			<td>256</td>
+		</tr>
+		<tr>
+			<td>3</td>
+			<td>2048</td>
+		</tr>
+		<tr>
+			<td>5</td>
+			<td>????</td>
+		</tr>
+
+	</table>
+
+</section>
+-->
+<section data-transition="fade">
+
+	new Histogram(<span style="font-weight: bold; color: red"> 3 </span>)
+
+	<aside class="notes">
+		3 facteurs pour tunner l'emprunte mémoire
+		nb chiffres significatifs => taille des buckets
+		3 => 2048 cases
+		TODO la taille des buckets pour 5 chiffres significatifs
+	</aside>
+
+</section>
+
+<!--
+<section data-transition="fade">
+
+<ul>
+	<li>new Histogram(<span style="font-weight: bold"> 3 </span>)</li>
+	<li class="fragment">new Histogram(<span style="font-weight: bold"> MAX_VALUE </span>, 3 )</li>
+	<li class="fragment">new <span style="font-weight: bold">IntCounts</span>Histogram( MAX_VALUE , 3 )</li>
+	<li class="fragment">new <span style="font-weight: bold">ShortCounts</span>Histogram( MAX_VALUE , 3 )</li>
+</ul>
+	<aside class="notes">
+		3 facteurs pour tunner l'emprunte mémoire
+		nb chiffres significatifs => taille des buckets
+		3 => 2048 cases
+		TODO la taille des buckets pour 5 chiffres significatifs
+	</aside>
+
+</section>
+-->
+
+<section data-transition="fade">
+	new Histogram(<span style="font-weight: bold; color: red"> MAX_VALUE </span>, 3 )
+
+	<aside class="notes">
+		la valeur max observée => nombres de buckets à gérer et donc encore la taille du tableau de compteurs
+	</aside>
+
+</section>
+
+
+<section data-transition="fade">
+	new <span style="font-weight: bold; color: red">IntCounts</span>Histogram( MAX_VALUE , 3 )
+
+	<aside class="notes">
+		On divise par 2 par rapport aux longs
+	</aside>
+
+</section>
+
+
+<section data-transition="fade">
+	new <span style="font-weight: bold; color: red">ShortCounts</span>Histogram( MAX_VALUE , 3 )
+
+	<aside class="notes">
+		On divise par 2 par rapport aux longs
+	</aside>
+
+</section>
+
+
 
 		<script src="lib/js/head.min.js"></script>
 		<script src="js/reveal.js"></script>

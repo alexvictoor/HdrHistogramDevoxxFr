@@ -1,0 +1,408 @@
+
+<!-- saved from url=(0063)https://alexvictoor.github.io/HdrHistogramJSDemo/plotFiles.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+    div.histo {
+        visibility: hidden
+    }
+</style>
+
+<!--Load the AJAX API-->
+<script type="text/javascript" src="./plotFiles_files/jsapi"></script>
+<script type="text/javascript" src="./plotFiles_files/pako.min.js.téléchargement"></script>
+<script type="text/javascript" src="./plotFiles_files/hdrhistogram.min.js.téléchargement"></script>
+
+
+<script type="text/javascript">
+
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+        // Great success! All the File APIs are supported.
+    } else {
+        alert('The File APIs are not fully supported in this browser.');
+    }
+
+    // Load the Visualization API and the piechart package.
+    google.load('visualization', '1.0', {'packages':['corechart']});
+
+    // Set a callback to run when the Google Visualization API is loaded.
+    google.setOnLoadCallback(drawInitialChart);
+
+    var chartData = null;
+    var chart = null;
+
+    function setChartData(names, histos) {
+        while (names.length < histos.length) {
+            names.push('Unknown');
+        }
+
+        var series = [];
+        for (var i = 0; i < histos.length; i++) {
+            if (!histos[i].startsWith("HIST")) {
+                console.log("Good old histogram output parsing for " + names[i]);
+                series = appendDataSeries(histos[i], names[i], series);    
+            } else {
+                console.log("Will try base64 decoding on " + names[i]);
+                var histogram = hdr.decodeFromCompressedBase64(histos[i]);
+                var histoOutput = histogram.outputPercentileDistribution();
+                series = appendDataSeries(histoOutput, names[i], series);
+            }
+            
+        }
+
+        chartData = google.visualization.arrayToDataTable(series);
+    }
+
+
+    function drawInitialChart() {
+        // Connect the choose files button:
+        document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+        // Load some static example data:
+        var data1Str = "HISTFAAAAkV42i1NTWgTQRTe93Yyna7jdEzTbaghpjWsEpaQxhLXumxLLEuRGpallJCDhxB6qXqQUsSDFFlDwRzEQikhJ+nFIOLFgkWk9NCz1LtIDx6lIPTixdm2b+bN+37mvZeJNoc1DTvaeSQuKlxUnDk5B6OnA9+O2O+dgY8/yMkR230N75zuys/JrXt7ma2r7cmNkXby0/Vj89j8dSMa3sls8wN2yt8kvuvrdB8PsEv+wKG+D1/hA/ZgHSJsunuw8HTKW6sstKxiaM+nJ7ycVS0Wl6ZWS/mm4z5q+F3wX7gTQa60nCkGhelCvn7TCtOpmj1XKAXTE82i24FaG6puD/xKH2qNlzC7C/7DCMJKFyx/zY/AnV0LnB7Uwz4sbIAXbkNY24K5pT64fQgaPVhcPIR66y0EHfCrEQRhB+aDVSeCqtrf9J75Lct57tnNOXu10nLtesVdLpQb5fuW0yw5T0rTXt6rmPO5vJ2RpbGyJfPp7KzIWrmylDaX2WQqzS2ZLnCRFWbBHONcSDpGpTAEM7jB0zyZEaakWWokBZNoEJbkJEVJiglpMMYkJ4KajJnESHGRoianklBBDK4eyhnjBKUhKSWUKogaIUhUMMGQKk6QMko0olPU2JmvM6US1NVFxdWhGAfRY0FTQCMJvLBiFc/uuYYJBRMxH8QrKvGSKpdxHIdwWOUdZYzjJipyG2fwsTJXEAdwBB8o55b6kYi7B1XbOOI1tUBXOapWxiPjobEypJRXgHcVmcH3gF+kmvK3jfjvM+B/gsBx8g==";
+
+        var data2Str = "HISTFAAAATR42i1MPUhCYRT97nn3fejrPY2XlVFJQkgRtBT9gBBBWxBBQSANIW0tzY3xyEVEUFwNgloCw5pqiYaGaBCRaBPCNQlqCUK6T70X7jnnnnPvhFcYUorWVa/MPlIfsfbVI2P5zuB9xTnf/dkq3tBjvD79Mfy31B7x3Go4yy+o8h1lqUXpa26HOzP1zUao5RSjOf3Ml7qBJz5Djd6Qp5N38uigRoclOk6VaD+do5WN7UQyEkvq0FQkOm8nQoEY264FV1mKbba0rS3lasuF1sysLRlQCChR0AzWYiiIVAAjDDEHYLAIA9KsxDD9LZtsdLm/MSTkT4VRwOEgm9075Qd9EkdQbueErwpfENyR3wXCJGaxJ4FxXBCugCM0Cd+EDNA0cMsoL6OSwmcK5VfCwynhdxH/bL08Pw==";
+
+        var data3Str = "HISTFAAAAXt42i1OTSuEURS+57nnfed6Z8bMOzO+hsmMSCEiKRuSzx9BFhYs7PwDSc2kKJENSrLwMcpCQpHFbH3Eht0kC4tpVorF5LzDvfc85zzPfc65t2FpPaoUHaq/Zf1n+s8YLP4V0cKVf+c+mDvSuTO626fbE1rbo4v6HzdXc+4cRL6sY36381jEij6jDF3S3Cdl9bL/azTTVIr9JIrOk+/DPOCZi1SiDL/SORVwTdeUxXyeJke2aKxvhdo6J5ID4XhHbbI3EO+JNQciyUpT7YQjTjxsKtmOswmbWodtNgEHRtm2MgzHsFHG1oADBpgroAxYCVGAxcpW8Inuh2awT5gWXiEo3AuFKrbE4Okyxru1BK2yByEPJIIiBGXLEcEzKMEF1KAOLoaBdvH3i+zCL1UrxrFKuAGimEUCM0jJl1Ji70I3GqXVa4f3NVVuC8pLIXaBFumewrTMcbELGWbhjfBtyaAhT0jgRWOjDtsaV4NIp5A+1XjsxsYm4xd7EUW6";
+        var histos = [data3Str, data2Str, data1Str];
+        var names = ['A', 'B', 'C'];
+
+        setChartData(names, histos);
+        drawChart();
+    }
+
+    var maxPercentile = 1000000;
+
+    function drawChart() {
+
+        var ticks =
+                [{v:1,f:'0%'},
+                    {v:10,f:'90%'},
+                    {v:100,f:'99%'},
+                    {v:1000,f:'99.9%'},
+                    {v:10000,f:'99.99%'},
+                    {v:100000,f:'99.999%'},
+                    {v:1000000,f:'99.9999%'},
+                    {v:10000000,f:'99.99999%'},
+                    {v:100000000,f:'99.999999%'}];
+
+        var unitSelection = document.getElementById("timeUnitSelection");
+        var unitSelIndex = unitSelection.selectedIndex;
+        var unitText = unitSelection.options[unitSelIndex].innerHTML;
+
+        var options = {
+            title: 'Latency by Percentile Distribution',
+            height: 480,
+//            hAxis: {title: 'Percentile', minValue: 0, logScale: true, ticks:ticks },
+            hAxis: {
+                title: "Percentile",
+                minValue: 1, logScale: true, ticks:ticks,
+                viewWindowMode:'explicit',
+                viewWindow:{
+                    max:maxPercentile,
+                    min:1
+                }
+            },
+            vAxis: {title: 'Latency (' + unitText + ')', minValue: 0 },
+            legend: {position: 'bottom'}
+        };
+
+        if (chart == null) {
+            chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+        }
+
+        // add tooptips with correct percentile text to data:
+        var columns = [0];
+        for (var i = 1; i < chartData.getNumberOfColumns(); i++) {
+            columns.push(i);
+            columns.push({
+                type: 'string',
+                properties: {
+                    role: 'tooltip'
+                },
+                calc: (function (j) {
+                    return function (dt, row) {
+                        var percentile = 100.0 - (100.0/dt.getValue(row, 0));
+                        return dt.getColumnLabel(j) + ': ' +
+                                percentile.toPrecision(7) +
+                                '\%\'ile = ' + dt.getValue(row, j) + ' ' + unitText
+                    }
+                })(i)
+            });
+        }
+        var view = new google.visualization.DataView(chartData);
+        view.setColumns(columns);
+
+        chart.draw(view, options);
+
+    }
+</script><script src="./plotFiles_files/saved_resource" type="text/javascript"></script><link href="./plotFiles_files/ui+fr.css" type="text/css" rel="stylesheet"><script src="./plotFiles_files/format+fr,default+fr,ui+fr,corechart+fr.I.js.téléchargement" type="text/javascript"></script>
+<script type="text/javascript">
+    function appendDataSeries(histo, name, dataSeries) {
+        var series;
+        var seriesCount;
+        if (dataSeries.length == 0) {
+            series = [ ['X', name] ];
+            seriesCount = 1;
+        } else {
+            series = dataSeries;
+            series[0].push(name);
+            seriesCount = series[0].length - 1;
+        }
+
+        var lines = histo.split("\n");
+
+        var seriesIndex = 1;
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            var values = line.trim().split(/[ ]+/);
+
+            if (line[0] != '#' && values.length == 4) {
+
+                var y = parseFloat(values[0]);
+                var x = parseFloat(values[3]);
+
+                if (!isNaN(x) && !isNaN(y)) {
+
+                    if (seriesIndex >= series.length) {
+                        series.push([x]);
+                    }
+
+                    while (series[seriesIndex].length < seriesCount) {
+                        series[seriesIndex].push(null);
+                    }
+
+                    series[seriesIndex].push(y);
+                    seriesIndex++;
+                }
+            }
+        }
+
+        while (seriesIndex < series.length) {
+            series[seriesIndex].push(null);
+            seriesIndex++;
+        }
+
+        return series;
+    }
+</script>
+<script>
+    function timeUnitsSelected(evt) {
+        drawChart();
+    }
+
+    function doExport(event) {
+        saveSvgAsPng(document.querySelector('svg'), 'Histogram', 2.0);
+    }
+</script>
+
+<script>
+    function handleFileSelect(evt) {
+        var files = evt.target.files; // FileList object
+        var fileDisplayArea = document.getElementById('fileDisplayArea');
+
+        var names = [];
+        var histos = [];
+        var fileCount = 0;
+
+        fileDisplayArea.innerText = "file selected...\n";
+
+        // Loop through the FileList and render image files as thumbnails.
+        for (var i = 0, f; f = files[i]; i++) {
+            var reader = new FileReader();
+
+            reader.onload = (function(theFile) {
+                return function(e) {
+                    histos.push(e.target.result);
+                    names.push(escape(theFile.name));
+                    fileDisplayArea.innerText = " Plotting input from: " + names + "\n";
+                    setChartData(names, histos);
+                    drawChart();
+                };
+            })(f);
+
+            // Read in the image file as a data URL.
+            reader.readAsText(f);
+        }
+
+    }
+
+</script>
+
+<script type="text/javascript">
+    (function() {
+        var out$ = typeof exports != 'undefined' && exports || this;
+
+        var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
+
+        function inlineImages(callback) {
+            var images = document.querySelectorAll('svg image');
+            var left = images.length;
+            if (left == 0) {
+                callback();
+            }
+            for (var i = 0; i < images.length; i++) {
+                (function(image) {
+                    if (image.getAttribute('xlink:href')) {
+                        var href = image.getAttribute('xlink:href').value;
+                        if (/^http/.test(href) && !(new RegExp('^' + window.location.host).test(href))) {
+                            throw new Error("Cannot render embedded images linking to external hosts.");
+                        }
+                    }
+                    var canvas = document.createElement('canvas');
+                    var ctx = canvas.getContext('2d');
+                    var img = new Image();
+                    img.src = image.getAttribute('xlink:href');
+                    img.onload = function() {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        image.setAttribute('xlink:href', canvas.toDataURL('image/png'));
+                        left--;
+                        if (left == 0) {
+                            callback();
+                        }
+                    }
+                })(images[i]);
+            }
+        }
+
+        function styles(dom) {
+            var css = "";
+            var sheets = document.styleSheets;
+            for (var i = 0; i < sheets.length; i++) {
+                var rules = sheets[i].cssRules;
+                if (rules != null) {
+                    for (var j = 0; j < rules.length; j++) {
+                        var rule = rules[j];
+                        if (typeof(rule.style) != "undefined") {
+                            css += rule.selectorText + " { " + rule.style.cssText + " }\n";
+                        }
+                    }
+                }
+            }
+
+            var s = document.createElement('style');
+            s.setAttribute('type', 'text/css');
+            s.innerHTML = "<![CDATA[\n" + css + "\n]]>";
+
+            var defs = document.createElement('defs');
+            defs.appendChild(s);
+            return defs;
+        }
+
+        out$.svgAsDataUri = function(el, scaleFactor, cb) {
+            scaleFactor = scaleFactor || 1;
+
+            inlineImages(function() {
+                var outer = document.createElement("div");
+                var clone = el.cloneNode(true);
+                var width = parseInt(
+                        clone.getAttribute('width')
+                        || clone.style.width
+                        || out$.getComputedStyle(el).getPropertyValue('width')
+                );
+                var height = parseInt(
+                        clone.getAttribute('height')
+                        || clone.style.height
+                        || out$.getComputedStyle(el).getPropertyValue('height')
+                );
+
+                var xmlns = "http://www.w3.org/2000/xmlns/";
+
+                clone.setAttribute("version", "1.1");
+                clone.setAttributeNS(xmlns, "xmlns", "http://www.w3.org/2000/svg");
+                clone.setAttributeNS(xmlns, "xmlns:xlink", "http://www.w3.org/1999/xlink");
+                clone.setAttribute("width", width * scaleFactor);
+                clone.setAttribute("height", height * scaleFactor);
+                clone.setAttribute("viewBox", "0 0 " + width + " " + height);
+                outer.appendChild(clone);
+
+                clone.insertBefore(styles(clone), clone.firstChild);
+
+                var svg = doctype + outer.innerHTML;
+                var uri = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(svg)));
+                if (cb) {
+                    cb(uri);
+                }
+            });
+        }
+
+        out$.saveSvgAsPng = function(el, name, scaleFactor) {
+            out$.svgAsDataUri(el, scaleFactor, function(uri) {
+                var image = new Image();
+                image.src = uri;
+                image.onload = function() {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    var context = canvas.getContext('2d');
+                    context.drawImage(image, 0, 0);
+
+                    var a = document.createElement('a');
+                    a.download = name;
+                    a.href = canvas.toDataURL('image/png');
+                    document.body.appendChild(a);
+                    a.click();
+                }
+            });
+        }
+    })();
+</script>
+
+<style>
+    .slider-width500
+    {
+        width: 500px;
+    }
+</style>
+
+<link href="./plotFiles_files/tooltip.css" rel="stylesheet" type="text/css"></head>
+
+<body>
+<h2>HdrHistogram Plotter (supports base64 zlib encoded histograms)</h2>
+
+<input type="file" id="files" name="files[]" multiple="">
+
+<pre id="fileDisplayArea">Please select file(s) above.</pre>
+
+<!--Div that will hold the pie chart-->
+<div id="chart_div"><div style="position: relative;"><div dir="ltr" style="position: relative; width: 1288px; height: 480px;"><div style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;" aria-label="Graphique"><svg width="1288" height="480" aria-label="Graphique" style="overflow: hidden;"><defs id="defs"><clippath id="_ABSTRACT_RENDERER_ID_0"><rect x="181" y="92" width="926" height="297"></rect></clippath></defs><rect x="0" y="0" width="1288" height="480" stroke="none" stroke-width="0" fill="#ffffff"></rect><g><text text-anchor="start" x="181" y="65.75" font-family="Arial" font-size="15" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">Latency by Percentile Distribution</text><rect x="181" y="53" width="926" height="15" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect></g><g><rect x="550" y="453" width="187" height="15" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect><g><rect x="550" y="453" width="46" height="15" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect><g><text text-anchor="start" x="586" y="465.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#222222">A</text></g><path d="M550,460.5L580,460.5" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path></g><g><rect x="620" y="453" width="46" height="15" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect><g><text text-anchor="start" x="656" y="465.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#222222">B</text></g><path d="M620,460.5L650,460.5" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path></g><g><rect x="690" y="453" width="47" height="15" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect><g><text text-anchor="start" x="726" y="465.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#222222">C</text></g><path d="M690,460.5L720,460.5" stroke="#ff9900" stroke-width="2" fill-opacity="1" fill="none"></path></g></g><g><rect x="181" y="92" width="926" height="297" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect><g clip-path="url(https://alexvictoor.github.io/HdrHistogramJSDemo/plotFiles.html#_ABSTRACT_RENDERER_ID_0)"><g><rect x="181" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="335" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="489" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="644" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="798" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="952" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1106" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="181" y="388" width="926" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="181" y="314" width="926" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="181" y="240" width="926" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="181" y="166" width="926" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="181" y="92" width="926" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect></g><g><rect x="181" y="388" width="926" height="1" stroke="none" stroke-width="0" fill="#333333"></rect></g><g><path d="M181.5,388.4704L188.48729256294303,388.4704L196.44029367207537,388.4704L205.44763910919704,388.4704L215.83545596858573,388.46744L227.9087909981971,388.46744L234.89608356114013,388.46744L242.84908467027248,388.46744L251.85643010739415,388.46744L262.043485998891,388.46448L274.3175819963942,388.46448L281.30487455933724,388.46448L289.2578756684696,388.46152L298.1480666879016,388.45856L308.5527327288013,388.4556L320.7263729945913,388.4556L327.78902148290797,388.45264L335.6666666666667,388.45264L344.61546051927263,388.45264L354.9113147013033,388.44968L367.1351639927884,388.4408L374.1978124811051,388.43192L382.07545766486373,388.39936L391.0242515174697,388.3964L401.3452149188559,388.3964L413.5439549909855,388.39344L420.6066034793022,388.39344L428.4842486630609,388.39048L437.4183966154385,388.39048L447.74145248444347,388.38752L459.9527459891826,388.38752L467.0059796237079,388.38456L474.89303966125794,388.3816L483.8345109642173,388.37864L494.15652049315725,388.37568L506.3615369873797,388.36976L513.4147706219051,388.36384L521.3018306594552,388.36384L530.2433019624144,388.35496L540.5621730596558,388.352L552.7703279855768,388.34608L559.8235616201022,388.34016L567.7106216576522,388.3372L576.6502621980607,388.32832L586.9725332920913,388.3224L599.1791189837738,388.3076L606.2335295474261,388.29872L614.1194126558493,388.28984L623.0599685837906,388.27504L633.3805396777666,388.26024L645.587909981971,388.23952L652.6423205456231,388.22472L660.5282036540464,388.20992L669.4687595819878,388.18624L679.789722983374,388.15072L691.9967009801682,388.0856L699.0511115438202,388.0412L706.9369946522435,387.96424L715.8773217344749,387.83992L726.1983178281532,387.7304L738.4054919783651,387.54096L745.4597554270078,387.27752L753.3457856504406,386.92528L762.2862271556248,386.46056L772.6072069031311,385.53704L784.8142829765623,385.22624L791.868546425205,385.19072L799.7545766486377,385.08712L808.6950181538219,385.01016L819.0159488629558,384.90064L831.2230739747594,384.58392L838.2773374234021,384.12512L846.1633676468348,384.09256L855.1037805462992,382.63328L865.4247643803436,382.50008L877.6318649729565,382.07088L884.6861468109931,382.02352L892.5721586450319,381.32496L901.5125858473576,376.55344L911.8335431189464,375.93776L924.0406559711536,363.91128L931.0949378091901,363.91128L938.980949643229,357.642L947.9213768455547,357.642L958.2423402469409,275.9756L970.4494469693507,275.9756L977.5037288073872,275.9756L985.3897406414262,266.56872L994.3301642680368,266.56872L1004.6511281802394,266.56872L1016.8582379675478,266.56872L1023.9125175069104,266.56872L1031.7985316396234,165.37224" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path><path d="M181.5,388.46152L188.48729256294303,388.46152L196.44029367207537,388.46152L205.44763910919704,388.46152L215.83545596858573,388.46152L227.9087909981971,388.45856L234.89608356114013,388.45856L242.84908467027248,388.45856L251.85643010739415,388.45856L262.043485998891,388.45856L274.3175819963942,388.45856L281.30487455933724,388.45856L289.2578756684696,388.45856L298.1480666879016,388.45856L308.5527327288013,388.45264L320.7263729945913,388.44968L327.78902148290797,388.44968L335.6666666666667,388.44968L344.61546051927263,388.44376L354.9113147013033,388.43784L367.1351639927884,388.43488L374.1978124811051,388.42896L382.07545766486373,388.40232L391.0242515174697,388.39936L401.3452149188559,388.3964L413.5439549909855,388.3964L420.6066034793022,388.3964L428.4842486630609,388.3964L437.4183966154385,388.39344L447.74145248444347,388.39048L459.9527459891826,388.38752L467.0059796237079,388.38752L474.89303966125794,388.38752L483.8345109642173,388.38456L494.15652049315725,388.3816L506.3615369873797,388.37568L513.4147706219051,388.37272L521.3018306594552,388.36976L530.2433019624144,388.36384L540.5621730596558,388.35792L552.7703279855768,388.34904L559.8235616201022,388.34608L567.7106216576522,388.34016L576.6502621980607,388.33424L586.9725332920913,388.32832L599.1791189837738,388.3224L606.2335295474261,388.31648L614.1194126558493,388.31056L623.0599685837906,388.30168L633.3805396777666,388.28984L645.587909981971,388.278L652.6423205456231,388.26912L660.5282036540464,388.25728L669.4687595819878,388.2336L679.789722983374,388.20992L691.9967009801682,388.19216L699.0511115438202,388.17736L706.9369946522435,388.15072L715.8773217344749,388.12704L726.1983178281532,388.10336L738.4054919783651,388.01456L745.4597554270078,387.97608L753.3457856504406,387.94056L762.2862271556248,387.90208L772.6072069031311,387.78664L784.8142829765623,387.72448L791.868546425205,387.68896L799.7545766486377,387.60904L808.6950181538219,387.44624L819.0159488629558,387.17984L831.2230739747594,386.88384L838.2773374234021,386.68552L846.1633676468348,386.6204L855.1037805462992,385.93368L865.4247643803436,385.4364L877.6318649729565,385.07232L884.6861468109931,384.67864L892.5721586450319,383.96528L901.5125858473576,383.1276L911.8335431189464,372.65808L924.0406559711536,355.53448000000003L931.0949378091901,355.53448000000003L938.980949643229,338.31912L947.9213768455547,338.31912L958.2423402469409,299.62304L970.4494469693507,299.62304L977.5037288073872,299.62304L985.3897406414262,274.90408L994.3301642680368,274.90408L1004.6511281802394,274.90408L1016.8582379675478,274.90408L1023.9125175069104,274.90408L1031.7985316396234,264.86968" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path><path d="M181.5,388.46448L188.48729256294303,388.46152L196.44029367207537,388.46152L205.44763910919704,388.45856L215.83545596858573,388.45856L227.9087909981971,388.4556L234.89608356114013,388.4556L242.84908467027248,388.45264L251.85643010739415,388.45264L262.043485998891,388.45264L274.3175819963942,388.45264L281.30487455933724,388.45264L289.2578756684696,388.44968L298.1480666879016,388.44968L308.5527327288013,388.44376L320.7263729945913,388.4408L327.78902148290797,388.43784L335.6666666666667,388.43192L344.61546051927263,388.426L354.9113147013033,388.42008L367.1351639927884,388.4112L374.1978124811051,388.4112L382.07545766486373,388.40528L391.0242515174697,388.40232L401.3452149188559,388.3964L413.5439549909855,388.37272L420.6066034793022,388.34608L428.4842486630609,388.26024L437.4183966154385,388.17144L447.74145248444347,388.11224L459.9527459891826,388.05304L467.0059796237079,388.02344L474.89303966125794,387.99976L483.8345109642173,387.97312L494.15652049315725,387.94352L506.3615369873797,387.91096L513.4147706219051,387.8932L521.3018306594552,387.87248L530.2433019624144,387.85176L540.5621730596558,387.82808L552.7703279855768,387.79256L559.8235616201022,387.77184L567.7106216576522,387.7452L576.6502621980607,387.7156L586.9725332920913,387.68008L599.1791189837738,387.63272L606.2335295474261,387.60904L614.1194126558493,387.57352L623.0599685837906,387.54392L633.3805396777666,387.51432L645.587909981971,387.48472L652.6423205456231,387.46696L660.5282036540464,387.44328L669.4687595819878,387.42552L679.789722983374,387.38408L691.9967009801682,387.35152L699.0511115438202,387.32192L706.9369946522435,387.28936L715.8773217344749,387.242L726.1983178281532,387.18576L738.4054919783651,387.1236L745.4597554270078,387.08808L753.3457856504406,386.99632L762.2862271556248,386.82168L772.6072069031311,386.08168L784.8142829765623,385.57256L791.868546425205,385.33872L799.7545766486377,385.31208L808.6950181538219,385.21736L819.0159488629558,385.14632L831.2230739747594,385.10488L838.2773374234021,385.096L846.1633676468348,385.07824L855.1037805462992,385.05456L865.4247643803436,385.01904L877.6318649729565,384.98056L884.6861468109931,384.77927999999997L892.5721586450319,384.68752L901.5125858473576,384.6816L911.8335431189464,384.58392L924.0406559711536,384.32936L931.0949378091901,384.32936L938.980949643229,381.20952L947.9213768455547,381.20952L958.2423402469409,381.04672L970.4494469693507,381.04672L977.5037288073872,381.04672L985.3897406414262,331.23879999999997L994.3301642680368,331.23879999999997L1004.6511281802394,331.23879999999997L1016.8582379675478,331.23879999999997L1023.9125175069104,331.23879999999997L1031.7985316396234,296.76368" stroke="#ff9900" stroke-width="2" fill-opacity="1" fill="none"></path></g></g><g></g><g><g><text text-anchor="middle" x="181.5" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">0%</text></g><g><text text-anchor="middle" x="335.6666666666667" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">90%</text></g><g><text text-anchor="middle" x="489.83333333333337" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">99%</text></g><g><text text-anchor="middle" x="644" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">99.9%</text></g><g><text text-anchor="middle" x="798.1666666666667" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">99.99%</text></g><g><text text-anchor="middle" x="952.3333333333335" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">99.999%</text></g><g><text text-anchor="middle" x="1106.5" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">99.9999%</text></g><g><text text-anchor="end" x="166" y="393.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">0</text></g><g><text text-anchor="end" x="166" y="319.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">25&nbsp;000</text></g><g><text text-anchor="end" x="166" y="245.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">50&nbsp;000</text></g><g><text text-anchor="end" x="166" y="171.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">75&nbsp;000</text></g><g><text text-anchor="end" x="166" y="97.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">100&nbsp;000</text></g></g></g><g><g><text text-anchor="middle" x="644" y="438.0833333333333" font-family="Arial" font-size="15" font-style="italic" stroke="none" stroke-width="0" fill="#222222">Percentile</text><rect x="181" y="425.3333333333333" width="926" height="15" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect></g><g><text text-anchor="middle" x="62.25" y="240.5" font-family="Arial" font-size="15" font-style="italic" transform="rotate(-90 62.25 240.5)" stroke="none" stroke-width="0" fill="#222222">Latency (milliseconds)</text><path d="M49.49999999999999,389L49.50000000000001,92L64.50000000000001,92L64.49999999999999,389Z" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></path></g></g><g></g></svg><div aria-label="Représentation des données du graphique sous forme de tableau" style="position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden;"><table><thead><tr><th>X</th><th>A</th><th>B</th><th>C</th></tr></thead><tbody><tr><td>1</td><td>10</td><td>13</td><td>12</td></tr><tr><td>1,11</td><td>10</td><td>13</td><td>13</td></tr><tr><td>1,25</td><td>10</td><td>13</td><td>13</td></tr><tr><td>1,43</td><td>10</td><td>13</td><td>14</td></tr><tr><td>1,67</td><td>11</td><td>13</td><td>14</td></tr><tr><td>2</td><td>11</td><td>14</td><td>15</td></tr><tr><td>2,22</td><td>11</td><td>14</td><td>15</td></tr><tr><td>2,5</td><td>11</td><td>14</td><td>16</td></tr><tr><td>2,86</td><td>11</td><td>14</td><td>16</td></tr><tr><td>3,33</td><td>12</td><td>14</td><td>16</td></tr><tr><td>4</td><td>12</td><td>14</td><td>16</td></tr><tr><td>4,44</td><td>12</td><td>14</td><td>16</td></tr><tr><td>5</td><td>13</td><td>14</td><td>17</td></tr><tr><td>5,71</td><td>14</td><td>14</td><td>17</td></tr><tr><td>6,67</td><td>15</td><td>16</td><td>19</td></tr><tr><td>8</td><td>15</td><td>17</td><td>20</td></tr><tr><td>8,89</td><td>16</td><td>17</td><td>21</td></tr><tr><td>10</td><td>16</td><td>17</td><td>23</td></tr><tr><td>11,43</td><td>16</td><td>19</td><td>25</td></tr><tr><td>13,33</td><td>17</td><td>21</td><td>27</td></tr><tr><td>16</td><td>20</td><td>22</td><td>30</td></tr><tr><td>17,78</td><td>23</td><td>24</td><td>30</td></tr><tr><td>20</td><td>34</td><td>33</td><td>32</td></tr><tr><td>22,86</td><td>35</td><td>34</td><td>33</td></tr><tr><td>26,67</td><td>35</td><td>35</td><td>35</td></tr><tr><td>32</td><td>36</td><td>35</td><td>43</td></tr><tr><td>35,56</td><td>36</td><td>35</td><td>52</td></tr><tr><td>40</td><td>37</td><td>35</td><td>81</td></tr><tr><td>45,71</td><td>37</td><td>36</td><td>111</td></tr><tr><td>53,33</td><td>38</td><td>37</td><td>131</td></tr><tr><td>64</td><td>38</td><td>38</td><td>151</td></tr><tr><td>71,11</td><td>39</td><td>38</td><td>161</td></tr><tr><td>80</td><td>40</td><td>38</td><td>169</td></tr><tr><td>91,43</td><td>41</td><td>39</td><td>178</td></tr><tr><td>106,67</td><td>42</td><td>40</td><td>188</td></tr><tr><td>128</td><td>44</td><td>42</td><td>199</td></tr><tr><td>142,22</td><td>46</td><td>43</td><td>205</td></tr><tr><td>160</td><td>46</td><td>44</td><td>212</td></tr><tr><td>182,86</td><td>49</td><td>46</td><td>219</td></tr><tr><td>213,33</td><td>50</td><td>48</td><td>227</td></tr><tr><td>256</td><td>52</td><td>51</td><td>239</td></tr><tr><td>284,44</td><td>54</td><td>52</td><td>246</td></tr><tr><td>320</td><td>55</td><td>54</td><td>255</td></tr><tr><td>365,71</td><td>58</td><td>56</td><td>265</td></tr><tr><td>426,67</td><td>60</td><td>58</td><td>277</td></tr><tr><td>512</td><td>65</td><td>60</td><td>293</td></tr><tr><td>568,89</td><td>68</td><td>62</td><td>301</td></tr><tr><td>640</td><td>71</td><td>64</td><td>313</td></tr><tr><td>731,43</td><td>76</td><td>67</td><td>323</td></tr><tr><td>853,33</td><td>81</td><td>71</td><td>333</td></tr><tr><td>1&nbsp;024</td><td>88</td><td>75</td><td>343</td></tr><tr><td>1&nbsp;137,78</td><td>93</td><td>78</td><td>349</td></tr><tr><td>1&nbsp;280</td><td>98</td><td>82</td><td>357</td></tr><tr><td>1&nbsp;462,86</td><td>106</td><td>90</td><td>363</td></tr><tr><td>1&nbsp;706,67</td><td>118</td><td>98</td><td>377</td></tr><tr><td>2&nbsp;048</td><td>140</td><td>104</td><td>388</td></tr><tr><td>2&nbsp;275,56</td><td>155</td><td>109</td><td>398</td></tr><tr><td>2&nbsp;560</td><td>181</td><td>118</td><td>409</td></tr><tr><td>2&nbsp;925,71</td><td>223</td><td>126</td><td>425</td></tr><tr><td>3&nbsp;413,33</td><td>260</td><td>134</td><td>444</td></tr><tr><td>4&nbsp;096</td><td>324</td><td>164</td><td>465</td></tr><tr><td>4&nbsp;551,11</td><td>413</td><td>177</td><td>477</td></tr><tr><td>5&nbsp;120</td><td>532</td><td>189</td><td>508</td></tr><tr><td>5&nbsp;851,43</td><td>689</td><td>202</td><td>567</td></tr><tr><td>6&nbsp;826,67</td><td>1&nbsp;001</td><td>241</td><td>817</td></tr><tr><td>8&nbsp;192</td><td>1&nbsp;106</td><td>262</td><td>989</td></tr><tr><td>9&nbsp;102,22</td><td>1&nbsp;118</td><td>274</td><td>1&nbsp;068</td></tr><tr><td>10&nbsp;240</td><td>1&nbsp;153</td><td>301</td><td>1&nbsp;077</td></tr><tr><td>11&nbsp;702,86</td><td>1&nbsp;179</td><td>356</td><td>1&nbsp;109</td></tr><tr><td>13&nbsp;653,33</td><td>1&nbsp;216</td><td>446</td><td>1&nbsp;133</td></tr><tr><td>16&nbsp;384</td><td>1&nbsp;323</td><td>546</td><td>1&nbsp;147</td></tr><tr><td>18&nbsp;204,44</td><td>1&nbsp;478</td><td>613</td><td>1&nbsp;150</td></tr><tr><td>20&nbsp;480</td><td>1&nbsp;489</td><td>635</td><td>1&nbsp;156</td></tr><tr><td>23&nbsp;405,71</td><td>1&nbsp;982</td><td>867</td><td>1&nbsp;164</td></tr><tr><td>27&nbsp;306,67</td><td>2&nbsp;027</td><td>1&nbsp;035</td><td>1&nbsp;176</td></tr><tr><td>32&nbsp;768</td><td>2&nbsp;172</td><td>1&nbsp;158</td><td>1&nbsp;189</td></tr><tr><td>36&nbsp;408,89</td><td>2&nbsp;188</td><td>1&nbsp;291</td><td>1&nbsp;257</td></tr><tr><td>40&nbsp;960</td><td>2&nbsp;424</td><td>1&nbsp;532</td><td>1&nbsp;288</td></tr><tr><td>46&nbsp;811,43</td><td>4&nbsp;036</td><td>1&nbsp;815</td><td>1&nbsp;290</td></tr><tr><td>54&nbsp;613,33</td><td>4&nbsp;244</td><td>5&nbsp;352</td><td>1&nbsp;323</td></tr><tr><td>65&nbsp;536</td><td>8&nbsp;307</td><td>11&nbsp;137</td><td>1&nbsp;409</td></tr><tr><td>72&nbsp;817,78</td><td>8&nbsp;307</td><td>11&nbsp;137</td><td>1&nbsp;409</td></tr><tr><td>81&nbsp;920</td><td>10&nbsp;425</td><td>16&nbsp;953</td><td>2&nbsp;463</td></tr><tr><td>93&nbsp;622,86</td><td>10&nbsp;425</td><td>16&nbsp;953</td><td>2&nbsp;463</td></tr><tr><td>109&nbsp;226,67</td><td>38&nbsp;015</td><td>30&nbsp;026</td><td>2&nbsp;518</td></tr><tr><td>131&nbsp;072</td><td>38&nbsp;015</td><td>30&nbsp;026</td><td>2&nbsp;518</td></tr><tr><td>145&nbsp;635,56</td><td>38&nbsp;015</td><td>30&nbsp;026</td><td>2&nbsp;518</td></tr><tr><td>163&nbsp;840</td><td>41&nbsp;193</td><td>38&nbsp;377</td><td>19&nbsp;345</td></tr><tr><td>187&nbsp;245,71</td><td>41&nbsp;193</td><td>38&nbsp;377</td><td>19&nbsp;345</td></tr><tr><td>218&nbsp;453,33</td><td>41&nbsp;193</td><td>38&nbsp;377</td><td>19&nbsp;345</td></tr><tr><td>262&nbsp;144</td><td>41&nbsp;193</td><td>38&nbsp;377</td><td>19&nbsp;345</td></tr><tr><td>291&nbsp;271,11</td><td>41&nbsp;193</td><td>38&nbsp;377</td><td>19&nbsp;345</td></tr><tr><td>327&nbsp;680</td><td>75&nbsp;381</td><td>41&nbsp;767</td><td>30&nbsp;992</td></tr></tbody></table></div></div></div><div aria-hidden="true" style="display: none; position: absolute; top: 490px; left: 1298px; white-space: nowrap; font-family: Arial; font-size: 15px;">C</div><div></div></div></div>
+
+Latency time units:
+<select name="units" size="1" id="timeUnitSelection" onchange="timeUnitsSelected()">
+    <option value="Latency (seconds)">seconds</option>
+    <option selected="" value="Latency (milliseconds)">milliseconds</option>
+    <option value="Latency (µs)">microseconds</option>
+    <option value="Latency (nanoseconds)">nanoseconds</option>
+</select>
+<button type="button" onclick="doExport(event)">Export Image</button>
+
+&nbsp; &nbsp; &nbsp; &nbsp;
+<p>
+Percentile range:
+
+<input type="range" class="slider-width500" min="1" max="8" value="7" step="1" width="300px" onchange="showValue(this.value)">
+<span id="percentileRange">99.99999%</span>
+<script type="text/javascript">
+    function showValue(newValue) {
+        var x = Math.pow(10, newValue);
+        percentile = 100.0 - (100.0 / x);
+        document.getElementById("percentileRange").innerHTML=percentile + "%";
+        maxPercentile = x;
+        drawChart();
+    }
+</script>
+</p>
+<p>
+    <br>
+*** Note: Input files are expected to be in the .hgrm format produced by
+HistogramLogProcessor, or the percentile output format for HdrHistogram.
+See example file format
+    <a href="https://github.com/HdrHistogram/HdrHistogram/blob/master/GoogleChartsExample/example1.txt">here</a>
+<br>
+V2 base64 encoded histograms are also supported (looks like this "HISTFAAAAB542pNpmSzMwMDAxAABzFCaEUoz2X+AMIKZAEARAtM=")
+</p>
+
+
+</body></html>
