@@ -21,6 +21,54 @@
 			table.schema, th, table.schema td {
    			border: 1px solid black;
 			}
+
+			/* intro slides */
+			html.intro .slides {
+				background-image: url("background_1280_720_HD.png"); }
+
+			html.intro .reveal .slides section h1, html.intro .reveal .slides section h2 {
+				padding-top: 12%;
+				padding-left: 6%;
+				padding-right: 6%;
+				text-align: left;
+				border-bottom: none; }
+
+			html.intro .reveal .slides section p {
+				text-align: left;
+				margin-left: 12%;
+				margin-right: 12%; }
+
+			html.intro .footer {
+				z-index: 100;
+				background-image: none;
+				background-color: #057ffa; }
+
+			html.intro h2, html.intro h3, html.intro p {
+				color: white;
+			}
+
+			/* devoxx footer */
+			.footer {
+				position:absolute;
+				bottom: 0px;
+				width: 100%;
+				height: 49px;
+				background-image: url("../../bandeau_bas.png");
+				background-position: center top; }
+
+			.footer img {
+				position: absolute;
+				top: 0px;
+				right: 0px; }
+
+			.footer p {
+				margin: 0px;
+				text-align: left;
+				padding-left: 10px;
+				font-size: 1em;
+				font-weight: bold }	
+
+
 		</style>
 
 		<!-- Printing and PDF exports -->
@@ -37,7 +85,7 @@
 			<div class="slides">
 
 
-<section>
+<section data-state="intro">
 	<h2>HdrHistogram</h2>
 	<h3>l'outil indispensable pour mesurer la latence</h3>
 	<aside class="notes">
@@ -47,7 +95,7 @@
 	</aside>
 </section>
 
-<section>
+<section data-state="intro">
 	<h2>MYSELF</h2>
 	<p style="text-align: left;">
 		Alexandre Victoor<br/>
@@ -56,7 +104,7 @@
 		https://github.com/alexvictoor<br/>
 		@alex_victoor
 	</p>
-	<aside class="notes">
+		<aside class="notes">
 		HdrHistogram porté en JavaScript
 	</aside>
 </section>
@@ -71,15 +119,14 @@
 </section>
 <section>
 	<h3>HdrHistogram</h3>
-	<img src="Duke-Guitar.png" width="30%" style="border: 0px" />
-	<img src="golang.png" width="15%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="python.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="The_C_Programming_Language_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="csharp.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="Erlang_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="Rust_programming_language_black_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="Unofficial_JavaScript_logo_2.svg.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
-	
+	<img src="golang.png" width="10%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="python.png" width="13%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="The_C_Programming_Language_logo.svg.png" width="13%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="Duke-Guitar.png" width="20%" style="border: 0px" />
+	<img src="csharp.png" width="13%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="Erlang_logo.svg.png" width="13%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="Rust_programming_language_black_logo.svg.png" width="13%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="Unofficial_JavaScript_logo_2.svg.png" width="13%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
 	<aside class="notes">
 		HdrHistogram permet de gérer des histograms, des statistiques sur des temps de réponses et du comportement d'un ssystème
 		Java et d'autre technos
@@ -662,7 +709,12 @@ En passant en plus à 3 chiffres significatifs, et en utilisant des integer pour
 	</aside>
 </section>
 
+			</div>
+		
+		<div class="footer"><p style="color: white">#DevoxxFR</p><img align="right" src="logo-texte-devoxx-france-400.png" /></div>
 
+		
+			</div>
 
 
 		<script src="lib/js/head.min.js"></script>
@@ -672,6 +724,12 @@ En passant en plus à 3 chiffres significatifs, et en utilisant des integer pour
 			// More info https://github.com/hakimel/reveal.js#configuration
 			Reveal.initialize({
 				history: true,
+
+				width: 1280,
+ 				height: 720,
+ 				slideNumber: true,
+ 				margin: 0.0,
+
 
 				controls: false,
 				progress: false,
