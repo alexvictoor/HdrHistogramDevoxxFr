@@ -72,13 +72,13 @@
 <section>
 	<h3>HdrHistogram</h3>
 	<img src="Duke-Guitar.png" width="30%" style="border: 0px" />
-	<img src="golang.png" width="15%" style="border: 0px" class="fragment fade-up"/>
-	<img src="python.png" width="20%" style="border: 0px" class="fragment fade-up"/>
-	<img src="The_C_Programming_Language_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up"/>
-	<img src="csharp.png" width="20%" style="border: 0px" class="fragment fade-up"/>
-	<img src="Erlang_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up"/>
-	<img src="Rust_programming_language_black_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up"/>
-	<img src="Unofficial_JavaScript_logo_2.svg.png" width="20%" style="border: 0px" class="fragment fade-up"/>
+	<img src="golang.png" width="15%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="python.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="The_C_Programming_Language_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="csharp.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="Erlang_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="Rust_programming_language_black_logo.svg.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="Unofficial_JavaScript_logo_2.svg.png" width="20%" style="border: 0px" class="fragment fade-up" data-fragment-index="1"/>
 	
 	<aside class="notes">
 		HdrHistogram permet de gérer des histograms, des statistiques sur des temps de réponses et du comportement d'un ssystème
@@ -99,6 +99,10 @@
 	</aside>
 </section>
 
+<section data-background="measure-problem.jpg">
+
+</section>
+
 <section section data-background-color="#FFF" data-background-iframe="./Anscombe/index.html">
 	<aside class="notes">
 	Pour démarer en douceur
@@ -106,7 +110,9 @@
 	</aside>
 </section>
 <section>
-	<img src="be_above_average.jpg" />
+	<!--<img src="be_above_average.jpg" />-->
+	<h3>DON'T BE MEAN BE ABOVE AVERAGE</h3>
+	<img src="normal.png" style ="border: 0px" />
 	<aside class="notes">
 		Moyenne c'est surti utile lorsque les valeurs sont réparti suivant une loi normale
 		C'est le cas quand on a des valeurs aléatoires
@@ -114,6 +120,7 @@
 		 isolées, des valeurs très éloignées de la moyenne
 	</aside>
 </section>
+<!--
 <section data-background="brexit.png" data-background-size="80%">
 	<aside class="notes">
 		wikipedia
@@ -121,7 +128,7 @@ En statistiques, un histogramme est un graphique permettant de représenter la r
 Un histogram c'est un outil graphique qui permet de représenter la répartition d'un ensemble de données
 	</aside>	
 </section>
-
+-->
 <section data-background="iosnoop_hist_full6.png" data-background-size="95%">
 
 	<aside class="notes">
@@ -142,7 +149,33 @@ le 50eme => valeur médiane
 </section>
 
 <section>
-	TODO stats Amazon
+	<table>
+		<tr>
+			<th>Site</th>
+			<th>Requêtes</th>
+			<th>(1 - 0.99^n) * 100%</th>
+		</tr>
+		<tr>
+			<td>devoxx.fr</td>
+			<td>139</td>
+			<td>75%</td>
+		</tr>
+		<tr>
+			<td>fnac.fr</td>
+			<td>163</td>
+			<td>81%</td>
+		</tr>
+		<tr>
+			<td>voyages-sncf.com</td>
+			<td>175</td>
+			<td>83%</td>
+		</tr>
+		<tr>
+			<td>lemonde.fr</td>
+			<td>547</td>
+			<td>99%</td>
+		</tr>
+	</table>
 </section>
 
 <section data-background-color="#FFF" data-background="hdr.example.png" data-background-size="100%">
@@ -218,16 +251,24 @@ histogram.getValueAtPercentile(99.9);
 
 </section>
 
+<section>
+	<h3>TODO DEMO JS</h3>
+</section>
+
 <section  data-transition="fade">
 	<h3>Comment ça marche ?</h3>
 	<p class="fragment fade-up" style="font-weight: small">"HdrHistogram uses exponentially increasing bucket value ranges (the parallel of the exponent portion of a floating point number) with each bucket containing a fixed number (per bucket) set of linear sub-buckets (the parallel of a non-normalized mantissa portion of a floating point number). Both dynamic range and resolution are configurable, with highestTrackableValue controlling dynamic range, and numberOfSignificantValueDigits controlling resolution."</p>
 <aside class="notes">
+	garder toutes les valeurs, ce n'est pas jouable, la mémoire explose. Garder quelques valeurs mais pas d'autres ce n'est pas jouable 
+	choisir ce que l'on garde et ce que l'on ignore, c'est un peu risqué si l'on veut au final des résultats un peu précis 
+
+	Pour être honnete je n'ai tronqué le début
 	Nitsan Wakart: Hmmm... I'll admit to having difficulty immediately understanding what's happening from the above text
 </aside>
 </section>
 
 <section  data-transition="fade">
-		
+<h3>long counts[]</h3>		
 <table>
 	<tr>
 		<td></td>
@@ -307,7 +348,7 @@ histogram.getValueAtPercentile(99.9);
 
 
 <section data-transition="fade">
-
+<h3>long counts[]</h3>
 <table>
 	<tr>
 		<td>&nbsp;</td>
@@ -396,56 +437,37 @@ histogram.getValueAtPercentile(99.9);
 	<h1>123 042</h1>
 </section>
 
-
 <section>
 	<h3>Buckets & Sub buckets</h3>
 	<h3>&nbsp;</h3>
-	<table>
-		<tr>
-			<td style="text-align: center; border: 0px">bucket 1</td>
-			<td style="text-align: center; border: 0px" data-fragment-index="1" class="fragment fade-right">bucket 2</td>
-			<td style="text-align: center; border: 0px" data-fragment-index="2" class="fragment fade-right">bucket 3</td>
-		</tr>
-		<tr>
-			<td style="border: 0px">
-				<table class="schema">
+	
+	
+	<table class="schema">
 					<tr>
 						<td>&nbsp;</td>
 						<td>&nbsp;</td>
 						<td>&nbsp;</td>
 						<td>&nbsp;</td>
-					</tr>
-				</table>
-			</td>
-			<td style="border: 0px" data-fragment-index="1" class="fragment fade-right">
-				<table class="schema">
-					<tr>
-						<td>&nbsp;&nbsp;&nbsp;</td>
-						<td>&nbsp;&nbsp;&nbsp;</td>
-						<td>&nbsp;&nbsp;&nbsp;</td>
-						<td>&nbsp;&nbsp;&nbsp;</td>
-					</tr>
-				</table>
-			</td>
-			<td style="border: 0px" data-fragment-index="2" class="fragment fade-right">
-				<table class="schema">
-					<tr>
-						<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-						<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-						<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-						<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-					</tr>
-				</table>
-			</td>
-	</tr>
-	<!--<tr>
-		<td style="text-align: center; border: 0px">1</td>
-		<td style="text-align: center; border: 0px">2</td>
-		<td style="text-align: center; border: 0px">4</td>
-	</tr>-->
-</table>
 
+						<td class="fragment fade-right" data-fragment-index="1">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						<td class="fragment fade-right" data-fragment-index="1">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						<td class="fragment fade-right" data-fragment-index="1">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						<td class="fragment fade-right" data-fragment-index="1">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						
+						<td class="fragment fade-right" data-fragment-index="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						<td class="fragment fade-right" data-fragment-index="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						<td class="fragment fade-right" data-fragment-index="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						<td class="fragment fade-right" data-fragment-index="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						<td class="fragment fade-right" data-fragment-index="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						
+
+					</tr>
+				</table>
+	
 </section>
+
+
+
 <!--
 <section>
 	<table>
@@ -532,6 +554,28 @@ histogram.getValueAtPercentile(99.9);
 </section>
 
 
+<section>
+	new Histogram( Long.MAX_VALUE , 5 )
+
+	<h1 class="fragment fade-up">49 Mo</h1>
+	<aside class="notes">
+des ordres de grandeur sur l'occupation mémoire
+moi au début, le choix pépère
+Imaginons que l'on mesure la latence d'un service en ms, que l'on timeout à 30secondes
+	</aside>
+</section>
+
+<section>
+	new IntCountsHistogram( 1000 * 30, 3 )
+
+	<h1 class="fragment fade-up">25 Ko</h1>
+	<aside class="notes">
+En passant en plus à 3 chiffres significatifs, et en utilisant des integer pour gérer les compteurs à laplace des lons
+	</aside>
+</section>
+
+
+
 
 		<script src="lib/js/head.min.js"></script>
 		<script src="js/reveal.js"></script>
@@ -540,6 +584,9 @@ histogram.getValueAtPercentile(99.9);
 			// More info https://github.com/hakimel/reveal.js#configuration
 			Reveal.initialize({
 				history: true,
+
+				controls: false,
+				progress: false,
 
 				// More info https://github.com/hakimel/reveal.js#dependencies
 				dependencies: [
