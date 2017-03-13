@@ -68,6 +68,11 @@
 				font-size: 1em;
 				font-weight: bold }	
 
+						
+			mark {
+				opacity: 0.2;
+				background-color: #3f3f3f; }
+
 
 		</style>
 
@@ -230,20 +235,16 @@ le 50eme => valeur médiane
 </section>
 
 
-<section>
+<section data-transition="none">
 	<h3>L'API</h3>
-<pre>
-	<code data-trim class="fragment java">
-long before = System.nanoTime();
+<pre><code data-trim data-noescape class="java">long before = System.nanoTime();
 
 // ce que l'on mesure
 SUT.call();                   
 
 long duration = System.nanoTime() - before;
 
-// ensuite on fait quoi ???
-		</code>
-</pre>
+<mark>histogram.recordValue(duration);</mark></code></pre>
 	<aside class="notes">
 		Techniquement ce n'est pas simple'
 			emprunte mémoire
@@ -251,33 +252,59 @@ long duration = System.nanoTime() - before;
 	</aside>
 </section>
 
-<section>
+<section data-transition="none">
 	<h3>L'API</h3>
-	<pre>
-		<code data-trim class="java">
-long before = System.nanoTime();
+	<pre><code data-trim data-noescape class="java">long before = System.nanoTime();
 
+// ce que l'on mesure
 SUT.call();                  
 
 long duration = System.nanoTime() - before;
 
+histogram.recordValue(duration);</code></pre>
+	<aside class="notes">
+	emprunte mémoire controlée
+	pas d'allocation à l'enregistrement
+	impact cpu faible (quelques nano secondes)
+	</aside>
+</section>
+
+<section data-transition="none">
+	<h3>L'API</h3>
+	<pre><code data-trim data-noescape class="java">// initialisation
+Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
+
+<mark>// enregistrement
 histogram.recordValue(duration);
-		</code>
+
+// consultation
+histogram.getValueAtPercentile(99);
+histogram.getValueAtPercentile(99.9);</mark></code></pre>
 <aside class="notes">
 	emprunte mémoire controlée
 	pas d'allocation à l'enregistrement
 	impact cpu faible (quelques nano secondes)
 	</aside>
 
-	</pre>
+</section>
+
+<section data-transition="none">
+	<h3>L'API</h3>
+	<pre><code data-trim data-noescape class="java">// initialisation
+Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
+
+// enregistrement
+histogram.recordValue(duration);
+
+<mark>// consultation
+histogram.getValueAtPercentile(99);
+histogram.getValueAtPercentile(99.9);</mark></code></pre>
 
 </section>
 
-<section>
+<section data-transition="none">
 	<h3>L'API</h3>
-	<pre>
-		<code data-trim class="java">
-// initialisation
+	<pre><code data-trim data-noescape class="java">// initialisation
 Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
 
 // enregistrement
@@ -285,18 +312,10 @@ histogram.recordValue(duration);
 
 // consultation
 histogram.getValueAtPercentile(99);
-histogram.getValueAtPercentile(99.9);
-
-		</code>
-<aside class="notes">
-	emprunte mémoire controlée
-	pas d'allocation à l'enregistrement
-	impact cpu faible (quelques nano secondes)
-	</aside>
-
-	</pre>
+histogram.getValueAtPercentile(99.9);</code></pre>
 
 </section>
+
 
 <section>
 	<h3>TODO DEMO JS</h3>
@@ -554,10 +573,12 @@ histogram.getValueAtPercentile(99.9);
 
 </section>
 
-<section>
-	<h1>High</h1>
-	<h1>Dynamic</h1>
-	<h1>Range</h1>
+<section align="left">
+	<div style="margin: 0 10%">
+		<h1>High</h1>
+		<h1>Dynamic</h1>
+		<h1>Range</h1>
+	</div>
 </section>
 
 
@@ -593,7 +614,7 @@ histogram.getValueAtPercentile(99.9);
 						<td class="fragment fade-right" data-fragment-index="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 						<td class="fragment fade-right" data-fragment-index="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 						<td class="fragment fade-right" data-fragment-index="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-						<td class="fragment fade-right" data-fragment-index="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+						<td class="fragment fade-right" data-fragment-index="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 						
 
 					</tr>
