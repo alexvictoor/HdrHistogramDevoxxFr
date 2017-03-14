@@ -322,8 +322,15 @@ histogram.getValueAtPercentile(99.9);</code></pre>
 </section>
 
 <section  data-transition="fade">
-	<h3>Comment ça marche ?</h3>
-	<p class="fragment fade-up" style="font-weight: small">"HdrHistogram uses exponentially increasing bucket value ranges (the parallel of the exponent portion of a floating point number) with each bucket containing a fixed number (per bucket) set of linear sub-buckets (the parallel of a non-normalized mantissa portion of a floating point number). Both dynamic range and resolution are configurable, with highestTrackableValue controlling dynamic range, and numberOfSignificantValueDigits controlling resolution."</p>
+	<h1>Comment ça marche ?</h1>
+</section>
+
+<section data-background="numbers2.jpg">
+
+</section>
+
+<section  data-transition="fade-up">
+	<p style="font-weight: small">"Internally, data in HdrHistogram variants is maintained using a concept somewhat similar to that of floating point number representation: Using an exponent a (non-normalized) mantissa to support a wide dynamic range at a high but varying (by exponent value) resolution. AbstractHistogram uses exponentially increasing bucket value ranges (the parallel of the exponent portion of a floating point number) with each bucket containing a fixed number (per bucket) set of linear sub-buckets (the parallel of a non-normalized mantissa portion of a floating point number). Both dynamic range and resolution are configurable, with highestTrackableValue controlling dynamic range, and numberOfSignificantValueDigits controlling resolution."</p>
 <aside class="notes">
 	garder toutes les valeurs, ce n'est pas jouable, la mémoire explose. Garder quelques valeurs mais pas d'autres ce n'est pas jouable 
 	choisir ce que l'on garde et ce que l'on ignore, c'est un peu risqué si l'on veut au final des résultats un peu précis 
@@ -332,6 +339,8 @@ histogram.getValueAtPercentile(99.9);</code></pre>
 	Nitsan Wakart: Hmmm... I'll admit to having difficulty immediately understanding what's happening from the above text
 </aside>
 </section>
+
+
 
 <section  data-transition="fade">
 <h3>long counts[]</h3>		
@@ -574,7 +583,7 @@ histogram.getValueAtPercentile(99.9);</code></pre>
 </section>
 
 <section align="left">
-	<div style="margin: 0 10%">
+	<div style="margin: 0 20%">
 		<h1>High</h1>
 		<h1>Dynamic</h1>
 		<h1>Range</h1>
