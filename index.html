@@ -22,6 +22,11 @@
    			border: 1px solid black;
 			}
 
+			table.no_border td {
+   			border-bottom: 0px;
+			}
+
+
 			/* intro slides */
 			html.intro .slides {
 				background-image: url("background_1280_720_HD.png"); }
@@ -72,6 +77,13 @@
 			mark {
 				opacity: 0.2;
 				background-color: #3f3f3f; }
+
+			
+			.simple_arrow {
+				background-size: 70% 100%; 
+				background-repeat: no-repeat;
+				background-image: "hand-drawn-arrow-2.png";
+			}
 
 
 		</style>
@@ -739,6 +751,63 @@ En passant en plus à 3 chiffres significatifs, et en utilisant des integer pour
 	</aside>
 </section>
 
+<section>
+	<h1>Un ptit benchmark</h1>
+</section>
+<section>
+ TODO code du bench en js
+</section>
+<section>
+ 
+<table width="100%">
+<tr>
+  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+  
+</tr>
+</table>
+</section>
+<section data-transition="fade-in">
+<table width="100%" class="no_border">
+	<tr>
+		<td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+		<td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+		<td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+		<td width="50%" height="100" align="center" style="background-size: 100% 100%" colspan="5" background="hand-drawn-arrow-3.png"></td>
+		<td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+		<td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
+		
+	</tr>
+	<tr class="fragment">
+		<td width="10%" height="100" align="center" class="simple_arrow" ></td>
+		<td width="10%" height="100" align="center" class="simple_arrow" ></td>
+		<td width="10%" height="100" align="center" class="simple_arrow" ></td>
+		
+		<td width="10%" height="100" align="center" class="simple_arrow"></td>
+		<td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-4-grey.png"></td>
+		<td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-4-grey.png"></td>
+		<td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-4-grey.png"></td>
+		<td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-4-grey.png"></td>
+		
+
+		<td width="10%" height="100" align="center" class="simple_arrow" ></td>
+		<td width="10%" height="100" align="center" class="simple_arrow" ></td>
+		
+	</tr>
+
+</table>
+</section>
+
+
+
 			</div>
 		
 		<div class="footer"><p style="color: white">#DevoxxFR</p><img align="right" src="logo-texte-devoxx-france-400.png" /></div>
@@ -757,7 +826,6 @@ En passant en plus à 3 chiffres significatifs, et en utilisant des integer pour
 
 				width: 1280,
  				height: 720,
- 				slideNumber: true,
  				margin: 0.0,
 
 
