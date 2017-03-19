@@ -336,7 +336,7 @@ histogram.getValueAtPercentile(99.9);</code></pre>
   fetch("ping.json")
     .then(_ => {
       const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
-      histogram.recordValue(performance.now() - before);
+      histogram.recordValue(latencyInMicro);
     });
 }, 100);
 
@@ -352,7 +352,7 @@ setInterval(() => {
   fetch("ping.json")
     .then(_ => {
       const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
-      histogram.recordValue(performance.now() - before);
+      histogram.recordValue(latencyInMicro);
     });
 }, 100);
 
@@ -368,7 +368,7 @@ setInterval(() => {
   fetch("ping.json")
     .then(_ => {
       const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
-      histogram.recordValue(performance.now() - before);
+      histogram.recordValue(latencyInMicro);
     });
 }, 100);
 
@@ -946,7 +946,7 @@ DEMO
   				fetch(`ping.json?nocache=${before}`)
     				.then(_ => {
       				const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
-      				histogram.recordValue(performance.now() - before);
+      				histogram.recordValue(latencyInMicro);
 							forEachNode("firstDemoTotalCount", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getTotalCount()}</span>`);
 							forEachNode("firstDemoMaxValue", elt => elt.innerHTML = `<span class='hljs-comment'>${floor(histogram.maxValue)}</span>`);
 							forEachNode("firstDemoNNN", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getValueAtPercentile(99.9)}</span>`);
