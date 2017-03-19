@@ -315,7 +315,7 @@ histogram.getValueAtPercentile(99.9);</mark></code></pre>
 
 </section>
 
-<section data-transition="none">
+<section data-transition="none" data-state="firstDemoEnd">
 	<h3>L'API</h3>
 	<pre><code data-trim data-noescape class="java">// initialisation
 Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
@@ -377,6 +377,12 @@ histogram.maxValue                    // <span class="firstDemoMaxValue">NA</spa
 histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
 histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
 histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</code></pre></section>
+
+
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">histogram.outputPercentileDistribution();
+
+
+<span class="firstDemoOutput">NA</span></code></pre></section>
 
 
 
@@ -799,42 +805,22 @@ En passant en plus à 3 chiffres significatifs, et en utilisant des integer pour
 </section>
 
 <section>
-	<h1>Un ptit benchmark</h1>
+	<h1>Un petit benchmark</h1>
 </section>
 <section>
- TODO code du bench en js
+	<pre><code data-trim data-noescape class="java">
+for (int i = 0; i < nbLoop; i++) {
+
+  long start = System.nanoTime();
+  logger.info("New message - {}", i);
+  histogram.recordValue((System.nanoTime() - start));
+
+  Thread.sleep(1);
+
+}
+</code></pre>
 </section>
 
-<!--
-<section>
- 
-<table width="100%" class="no_border">
-<tr>
-  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
-  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
-  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
-  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
-  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
-  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
-  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
-  <td width="10%" height="100" align="center" class="simple_arrow" background="hand-drawn-arrow-2.png"></td>
-  
-</tr>
-<tr>
-  <td width="100%" height="100" align="center" class="simple_arrow" colspan="7"></td>
-</tr>
-<tr>
-  <td width="100%" height="100" align="center" class="simple_arrow" colspan="7"></td>
-</tr>
-<tr>
-  <td width="100%" height="100" align="center" class="simple_arrow" colspan="7"></td>
-</tr>
-<tr>
-  <td width="100%" height="100" align="center" class="simple_arrow" colspan="7"></td>
-</tr>
-</table>
-</section>
--->
 <section>
 	<img src="coordinated-omission.png" class="stretch" style="border: 0px; box-shadow: 0 0 0 0"/>
 </section>
@@ -966,6 +952,8 @@ DEMO
 							forEachNode("firstDemoNNN", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getValueAtPercentile(99.9)}</span>`);
 							forEachNode("firstDemoNN", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getValueAtPercentile(99)}</span>`);
 							forEachNode("firstDemoMedian", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getValueAtPercentile(50)}</span>`);
+							forEachNode("firstDemoOutput", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.outputPercentileDistribution()}</span>`);
+
 						});
 				}, 100)
 			}
