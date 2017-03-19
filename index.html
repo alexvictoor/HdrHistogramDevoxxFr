@@ -85,6 +85,11 @@
 				background-image: "hand-drawn-arrow-2.png";
 			}
 
+			.no_border_img {
+				border: 0px; 
+				box-shadow: 0 0 0 0;
+			}
+
 
 		</style>
 
@@ -136,14 +141,14 @@
 </section>
 <section>
 	<h3>HdrHistogram</h3>
-	<img src="golang.png" width="10%" style="border: 0px; box-shadow: 0 0 0 0" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="python.png" width="13%" style="border: 0px; box-shadow: 0 0 0 0" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="The_C_Programming_Language_logo.svg.png" width="13%" style="border: 0px; box-shadow: 0 0 0 0" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="Duke-Guitar.png" width="20%" style="border: 0px; box-shadow: 0 0 0 0" />
-	<img src="csharp.png" width="13%" style="border: 0px; box-shadow: 0 0 0 0" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="Erlang_logo.svg.png" width="13%" style="border: 0px; box-shadow: 0 0 0 0" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="Rust_programming_language_black_logo.svg.png" width="13%" style="border: 0px; box-shadow: 0 0 0 0" class="fragment fade-up" data-fragment-index="1"/>
-	<img src="Unofficial_JavaScript_logo_2.svg.png" width="13%" style="border: 0px; box-shadow: 0 0 0 0" class="fragment fade-up" data-fragment-index="1"/>
+	<img src="golang.png" width="10%" class="no_border_img fragment fade-up" data-fragment-index="1"/>
+	<img src="python.png" width="13%" class="no_border_img fragment fade-up" data-fragment-index="1"/>
+	<img src="The_C_Programming_Language_logo.svg.png" width="13%" class="no_border_img fragment fade-up" data-fragment-index="1"/>
+	<img src="Duke-Guitar.png" width="20%" class="no_border_img" />
+	<img src="csharp.png" width="13%" class="no_border_img fragment fade-up" data-fragment-index="1"/>
+	<img src="Erlang_logo.svg.png" width="13%" class="no_border_img fragment fade-up" data-fragment-index="1"/>
+	<img src="Rust_programming_language_black_logo.svg.png" width="13%" class="no_border_img fragment fade-up" data-fragment-index="1"/>
+	<img src="Unofficial_JavaScript_logo_2.svg.png" width="13%" class="no_border_img fragment fade-up" data-fragment-index="1"/>
 	<aside class="notes">
 		HdrHistogram permet de gérer des histograms, des statistiques sur des temps de réponses et du comportement d'un ssystème
 		Java et d'autre technos
@@ -177,7 +182,7 @@
 <section data-background-color="#FFF">
 	<!--<img src="be_above_average.jpg" />-->
 	<h3>DON'T BE MEAN BE ABOVE AVERAGE</h3>
-	<img src="normal.png" width="70%" style ="border: 0px; box-shadow: 0 0 0 0" />
+	<img src="normal.png" width="70%" class="no_border_img" />
 	<aside class="notes">
 		Moyenne c'est surti utile lorsque les valeurs sont réparti suivant une loi normale
 		C'est le cas quand on a des valeurs aléatoires
@@ -244,7 +249,7 @@ le 50eme => valeur médiane
 </section>
 
 <section data-background-color="#FFF" data-background="hdr.example.png" data-background-size="100%">
-	<h1 class="fragment">DEMO</h1>
+	<h1>DEMO</h1>
 </section>
 
 
@@ -335,7 +340,7 @@ histogram.getValueAtPercentile(99.9);</code></pre>
   const before = performance.now();
   fetch("ping.json")
     .then(_ => {
-      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro"> NA </span> micro sec  
       histogram.recordValue(latencyInMicro);
     });
 }, 100);
@@ -822,7 +827,7 @@ for (int i = 0; i < nbLoop; i++) {
 </section>
 
 <section>
-	<img src="coordinated-omission.png" class="stretch" style="border: 0px; box-shadow: 0 0 0 0"/>
+	<img src="coordinated-omission.png" class="stretch no_border_img" />
 </section>
 
 <section data-transition="fade-in">
@@ -874,10 +879,12 @@ for (int i = 0; i < nbLoop; i++) {
 </table>
 </section>
 <section>
- FIX avant + fix after
+	histogram.recordValueWithExpectedInterval(value, expectedInterval);
+</section>
+<section align="left" data-transition="fade-up">correctedHistogram =<br/>&nbsp;&nbsp;&nbsp;&nbsp;histogram.copyCorrectedForCoordinatedOmission(expectedInterval);
 </section>
 <section>
-DEMO
+	<img src="coordinated-omission-schema.png" class="stretch" style="border: 0px;"/>
 </section>
 
 <section>
@@ -945,8 +952,9 @@ DEMO
   				const before = performance.now();
   				fetch(`ping.json?nocache=${before}`)
     				.then(_ => {
-      				const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      				const latencyInMicro = floor((performance.now() - before) * 1000);
       				histogram.recordValue(latencyInMicro);
+							forEachNode("firstDemoLatencyInMicro", elt => elt.innerHTML = `<span class='hljs-comment'>${latencyInMicro}</span>`);
 							forEachNode("firstDemoTotalCount", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getTotalCount()}</span>`);
 							forEachNode("firstDemoMaxValue", elt => elt.innerHTML = `<span class='hljs-comment'>${floor(histogram.maxValue)}</span>`);
 							forEachNode("firstDemoNNN", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getValueAtPercentile(99.9)}</span>`);
