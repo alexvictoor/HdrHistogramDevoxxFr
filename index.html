@@ -330,11 +330,57 @@ histogram.getValueAtPercentile(99.9);</code></pre>
 </section>
 
 
-<section>
-	<h3>TODO DEMO JS</h3>
-</section>
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
+<mark>setInterval(() => {
+  const before = performance.now();
+  fetch("ping.json")
+    .then(_ => {
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      histogram.recordValue(performance.now() - before);
+    });
+}, 100);
 
-<section  data-transition="fade">
+histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
+histogram.maxValue                    // <span class="firstDemoMaxValue">NA</span> micro sec
+histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
+histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
+histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
+
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
+setInterval(() => {
+  const before = performance.now();
+  fetch("ping.json")
+    .then(_ => {
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      histogram.recordValue(performance.now() - before);
+    });
+}, 100);
+
+<mark>histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
+histogram.maxValue;                   // <span class="firstDemoMaxValue">NA</span> micro sec
+histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
+histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
+histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
+
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
+setInterval(() => {
+  const before = performance.now();
+  fetch("ping.json")
+    .then(_ => {
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      histogram.recordValue(performance.now() - before);
+    });
+}, 100);
+
+histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
+histogram.maxValue                    // <span class="firstDemoMaxValue">NA</span> micro sec
+histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
+histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
+histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</code></pre></section>
+
+
+
+<section data-state="firstDemoEnd" data-transition="fade">
 	<h1>Comment ça marche ?</h1>
 </section>
 
@@ -873,6 +919,9 @@ DEMO
 
 		<script src="lib/js/head.min.js"></script>
 		<script src="js/reveal.js"></script>
+		<script src="lib/js/pako.min.js"></script>
+		<script src="lib/js/hdrhistogram.min.js"></script>
+
 
 		<script>
 			// More info https://github.com/hakimel/reveal.js#configuration
@@ -895,6 +944,43 @@ DEMO
 					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
 				]
 			});
+
+			let demoRunning = false;
+
+			const forEachNode = (className, action) => (
+				Array.from(document.getElementsByClassName(className)).forEach(action)
+			);
+
+			const { floor }  = Math; 
+
+			const firstDemo = () => {
+				const histogram = hdr.build();				
+				return setInterval(() => {
+  				const before = performance.now();
+  				fetch(`ping.json?nocache=${before}`)
+    				.then(_ => {
+      				const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      				histogram.recordValue(performance.now() - before);
+							forEachNode("firstDemoTotalCount", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getTotalCount()}</span>`);
+							forEachNode("firstDemoMaxValue", elt => elt.innerHTML = `<span class='hljs-comment'>${floor(histogram.maxValue)}</span>`);
+							forEachNode("firstDemoNNN", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getValueAtPercentile(99.9)}</span>`);
+							forEachNode("firstDemoNN", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getValueAtPercentile(99)}</span>`);
+							forEachNode("firstDemoMedian", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getValueAtPercentile(50)}</span>`);
+						});
+				}, 100)
+			}
+			
+			Reveal.addEventListener( 'firstDemo', function() {
+				if (!demoRunning) {
+					demoRunning = firstDemo();
+				}
+			} );
+
+			Reveal.addEventListener( 'firstDemoEnd', function() {
+    		clearInterval(demoRunning);
+				demoRunning = false;
+			} );
+
 		</script>
 	</body>
 </html>
