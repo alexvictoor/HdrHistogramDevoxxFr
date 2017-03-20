@@ -184,7 +184,7 @@
 	<h3>DON'T BE MEAN BE ABOVE AVERAGE</h3>
 	<img src="normal.png" width="70%" class="no_border_img" />
 	<aside class="notes">
-		Moyenne c'est surti utile lorsque les valeurs sont réparti suivant une loi normale
+		Moyenne c'est surtout utile lorsque les valeurs sont réparti suivant une loi normale
 		C'est le cas quand on a des valeurs aléatoires
 		Quand on parle de latences sur un sys informatique, ce n'est pas le cas, on a souvent des phénomènes d'accumulations, des valeurs
 		 isolées, des valeurs très éloignées de la moyenne
@@ -217,6 +217,8 @@ Le principe on trie les données, ensuite on cherche les 100 valeurs qui permett
 le 50eme => valeur médiane
 	</aside>
 </section>
+
+
 
 <section>
 	<table>
@@ -859,7 +861,7 @@ for (int i = 0; i < nbLoop; i++) {
 		<td width="10%" height="100" align="center" class="simple_arrow"></td>
 		<td width="10%" height="100" align="center" class="simple_arrow"></td>
 		<td width="10%" height="100" align="center" class="simple_arrow" ></td>
-		<td width="30%" height="100" align="right" class="simple_arrow" colspan="3" background="hand-drawn-arrow-4-dark-grey.png" style="background-position: right; background-size: 100% 100%"></td>
+		<td width="30%" height="100" align="right" class="simple_arrow" colspan="3" background="hand-drawn-arrow-4-grey.png" style="background-position: right; background-size: 100% 100%"></td>
 		<td width="10%" height="100" align="center" class="simple_arrow" ></td>
 		
 	</tr>
@@ -871,13 +873,17 @@ for (int i = 0; i < nbLoop; i++) {
 		<td width="10%" height="100" align="center" class="simple_arrow"></td>
 		<td width="10%" height="100" align="center" class="simple_arrow"></td>
 		<td width="10%" height="100" align="center" class="simple_arrow" ></td>
-		<td width="20%" height="100" align="right" class="simple_arrow" colspan="2" background="hand-drawn-arrow-4-dark-grey.png" style="background-position: right; background-size: 100% 100%"></td>
+		<td width="20%" height="100" align="right" class="simple_arrow" colspan="2" background="hand-drawn-arrow-4-grey.png" style="background-position: right; background-size: 100% 100%"></td>
 		<td width="10%" height="100" align="center" class="simple_arrow" ></td>
 		
 	</tr>
 	
 </table>
 </section>
+<section>
+	<img src="coordinated-omission-graph.png" class="stretch no_border_img" />
+</section>
+
 <section>
 	histogram.recordValueWithExpectedInterval(value, expectedInterval);
 </section>
@@ -887,20 +893,40 @@ for (int i = 0; i < nbLoop; i++) {
 	<img src="coordinated-omission-schema.png" class="stretch" style="border: 0px;"/>
 </section>
 
+<section data-background="timpul.jpg"></section>
+
 <section>
 	<h1>jHiccup</h1>
 	<h3>&nbsp;</h3>
 	<p>java&nbsp;&nbsp;-javaagent:jHiccup.jar&nbsp;&nbsp;MyProgram</p>
 </section>
 <section>
-	<img src="jhiccup-schema.png" class="stretch" style="border: 0px;"/>
+	<img src="jhiccup-schema.png" class="stretch no_border_img" />
 	<p>&nbsp;</p>
 </section>
 
 <section>
-DEMO
+	<h3>HDR LOG</h3>
+	<pre><code>#[Logged with jHiccup version 2.0.7-SNAPSHOT]
+#[Histogram log format version 1.2]
+#[StartTime: 1441812279.474 (seconds since epoch), Wed Sep 09 08:24:39 PDT 2015]
+"StartTimestamp","Interval_Length","Interval_Max","Interval_Compressed_Histogram"
+0.127,1.007,2.769,HISTFAAAAEV42pNpmSzMwMCgyAABTBDKT4GBgdnNYMcCBvsPEBEJISEuATEZMQ4uASkhIR4nrxg9v2lMaxhvMekILGZkKmcCAEf2CsI=
+1.134,0.999,0.442,HISTFAAAAEJ42pNpmSzMwMAgxwABTBDKT4GBgdnNYMcCBvsPEBEWLj45FTExAT4pBSEBKa6UkAgBi1uM7xjfMMlwMDABAC0CCjM=
+2.133,1.001,0.426,HISTFAAAAD942pNpmSzMwMAgwwABTBDKT4GBgdnNYMcCBvsPEBE+Ph4OLgk5OSkeIS4+LgEeswIDo1+MbmdYNASYAA51CSo=
+3.134,1.001,0.426,HISTFAAAAD942pNpmSzMwMAgwwABTBDKT4GBgdnNYMcCBvsPEBExPiEpITEFGTkRKSEeOR6FkCg1hTeMXvNYlHhYABQ5CTo=
+4.135,0.997,0.426,HISTFAAAAD942pNpmSzMwMAgwwABTBDKT4GBgdnNYMcCBvsPEBE2PiERBREpBREhER4+Hj4uvQAdrTlMBldYDDhYAAugCKk=
+5.132,1.002,0.426,HISTFAAAAEF42pNpmSzMwMAgywABTBDKT4GBgdnNYMcCBvsPEBEWPhElOR4pARUpKTkpGQkxq2mMegZnGI0+MZuIcAEAHo8Jvw==
+6.134,0.999,0.442,HISTFAAAAEF42pNpmSzMwMAgxwABTBDKT4GBgdnNYMcCBvsPEBEWIS4FITEhDiEJERE+GT6ZkhZGLbl7jEqrWHREmFgAIbAJMw==
+7.133,0.999,0.459,HISTFAAAAEJ42pNpmSzMwMCgwAABTBDKD8hndjPYsYDB/gNEhEtMQEBBTk5MQERCRkBEQEWlh9FJbg9jE+MS5ig1LhYmADkkCcE=
+8.132,1.000,0.459,HISTFAAAAEB42pNpmSzMwMAgxwABTBDKT4GBgdnNYMcCBvsPEBEWIREgEOIQEuGT4xHg41Oo0pIqu8LYwVImwMfGBAAfkgkw
+...
+</code></pre>
 </section>
 
+<section>
+<h3>Pour aller plus loin</h3>
+</section>
 
 			</div>
 		

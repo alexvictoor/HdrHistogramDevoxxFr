@@ -1,0 +1,353 @@
+
+<!-- saved from url=(0064)https://hdrhistogram.github.io/HdrHistogramJSDemo/logparser.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+    div.histo {
+        visibility: hidden
+    }
+</style>
+
+<!--Load the AJAX API-->
+<script type="text/javascript" src="./logparser_files/jsapi"></script>
+<script type="text/javascript" src="./logparser_files/pako.min.js.téléchargement"></script>
+<script type="text/javascript" src="./logparser_files/hdrhistogram.min.js.téléchargement"></script>
+<script type="text/javascript" src="./logparser_files/jhiccup.log.example.js.téléchargement"></script>
+
+
+<!--
+ WARNING quick'n'dirty code down here :(
+-->
+<script type="text/javascript">
+
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+        // Great success! All the File APIs are supported.
+    } else {
+        alert('The File APIs are not fully supported in this browser.');
+    }
+
+    // Load the Visualization API and the piechart package.
+    google.load('visualization', '1.0', {'packages':['corechart', 'annotationchart']});
+
+    // Set a callback to run when the Google Visualization API is loaded.
+    google.setOnLoadCallback(function() {
+        document.getElementById('files').addEventListener('change', handleFileSelect, false);
+        displayLogs();
+    });
+
+    var chart = null;
+    var maxChart = null;
+    
+    // initialized in jhiccup.log.example.js
+    //var logs = null;
+
+    var maxPercentile = 1000000;
+
+    var latestChartData;
+    function drawChart(chartData) {
+
+        if (chartData) {
+            latestChartData = chartData;
+        } else {
+            chartData = latestChartData;
+        }
+
+        var ticks =
+                [{v:1,f:'0%'},
+                    {v:10,f:'90%'},
+                    {v:100,f:'99%'},
+                    {v:1000,f:'99.9%'},
+                    {v:10000,f:'99.99%'},
+                    {v:100000,f:'99.999%'},
+                    {v:1000000,f:'99.9999%'},
+                    {v:10000000,f:'99.99999%'},
+                    {v:100000000,f:'99.999999%'}];
+
+        var unitSelection = document.getElementById("timeUnitSelection");
+        var unitSelIndex = unitSelection.selectedIndex;
+        var unitText = unitSelection.options[unitSelIndex].innerHTML;
+
+        var options = {
+            title: 'Latency by Percentile Distribution',
+            height: 480,
+            hAxis: {
+                title: "Percentile",
+                minValue: 1, logScale: true, ticks:ticks,
+                viewWindowMode:'explicit',
+                viewWindow:{
+                    max:maxPercentile,
+                    min:1
+                }
+            },
+            vAxis: {title: 'Latency (' + unitText + ')', minValue: 0 },
+            legend: {position: 'bottom'}
+        };
+
+        if (chart == null) {
+            chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+        }
+
+        // add tooptips with correct percentile text to data:
+        var columns = [0];
+        for (var i = 1; i < chartData.getNumberOfColumns(); i++) {
+            columns.push(i);
+            columns.push({
+                type: 'string',
+                properties: {
+                    role: 'tooltip'
+                },
+                calc: (function (j) {
+                    return function (dt, row) {
+                        var percentile = 100.0 - (100.0/dt.getValue(row, 0));
+                        return dt.getColumnLabel(j) + ': ' +
+                                percentile.toPrecision(7) +
+                                '\%\'ile = ' + dt.getValue(row, j) + ' ' + unitText
+                    }
+                })(i)
+            });
+        }
+        var view = new google.visualization.DataView(chartData);
+        view.setColumns(columns);
+
+        chart.draw(view, options);
+
+    }
+
+    function drawMaxChart(tags, rawData) {
+        var data = new google.visualization.DataTable();
+        data.addColumn('datetime', 'Date');
+        tags.forEach(tag => data.addColumn('number', tag));
+        
+        data.addRows(rawData);
+
+        if (maxChart) {
+            maxChart.clearChart();
+        }
+
+        maxChart = new google.visualization.AnnotationChart(document.getElementById('max_chart_div'));
+        
+
+        var options = {
+          displayAnnotations: false,
+          displayZoomButtons: false
+        };
+
+        maxChart.draw(data, options);
+
+        google.visualization.events.addListener(maxChart, 'rangechange', debounce(rangechange_handler, 200));
+
+        function debounce(callback, delay){
+          var timer;
+          return function(){
+            var args = arguments;
+            var context = this;
+            clearTimeout(timer);
+            timer = setTimeout(function(){
+              callback.apply(context, args);
+            }, delay)
+          }
+        }
+
+        function rangechange_handler(e) {
+          const data = parseLog(e.start, e.end);
+          drawChart(data.histogram);
+        }
+      }
+
+
+    function appendDataSeries(histo, name, dataSeries) {
+        var series;
+        var seriesCount;
+        if (dataSeries.length == 0) {
+            series = [ ['X', name] ];
+            seriesCount = 1;
+        } else {
+            series = dataSeries;
+            series[0].push(name);
+            seriesCount = series[0].length - 1;
+        }
+
+        var lines = histo.split("\n");
+
+        var seriesIndex = 1;
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            var values = line.trim().split(/[ ]+/);
+
+            if (line[0] != '#' && values.length == 4) {
+
+                var y = parseFloat(values[0]);
+                var x = parseFloat(values[3]);
+
+                if (!isNaN(x) && !isNaN(y)) {
+
+                    if (seriesIndex >= series.length) {
+                        series.push([x]);
+                    }
+
+                    while (series[seriesIndex].length < seriesCount) {
+                        series[seriesIndex].push(null);
+                    }
+
+                    series[seriesIndex].push(y);
+                    seriesIndex++;
+                }
+            }
+        }
+
+        while (seriesIndex < series.length) {
+            series[seriesIndex].push(null);
+            seriesIndex++;
+        }
+
+        return series;
+    }
+    function timeUnitsSelected(evt) {
+        drawChart();
+    }
+
+    const accumulatedHistograms = {}
+
+    function parseLog(begin = new Date(0), end = new Date(8640000000000000)) {
+
+        var begin = performance.now();
+        
+        const reader = new hdr.HistogramLogReader(logs);
+        const tags = hdr.listTags(logs);
+        
+        let latestMaxValues = {}
+        tags.forEach(tag => {
+            if (accumulatedHistograms[tag]) {
+                accumulatedHistograms[tag].reset();
+            } else {
+                accumulatedHistograms[tag] = new hdr.Int32Histogram(1, Number.MAX_SAFE_INTEGER, 3);
+            }
+        });
+
+        let histogram; 
+        const rows = [];
+        let latestTimeStampMsec; 
+        
+        while ((histogram = reader.nextIntervalHistogram()) != null) {
+            if (!latestTimeStampMsec) {
+                latestTimeStampMsec = histogram.startTimeStampMsec;
+            }
+            if (latestTimeStampMsec != histogram.startTimeStampMsec) {
+                const row = [new Date(latestTimeStampMsec)];
+                tags.forEach(tag => {
+                    row.push(latestMaxValues[tag]); 
+                });
+                rows.push(row);
+                latestMaxValues = {}
+                latestTimeStampMsec = histogram.startTimeStampMsec;
+            }
+            const histogramDate = new Date(histogram.startTimeStampMsec); 
+            if (begin <= histogramDate && histogramDate <= end) {
+                accumulatedHistograms[histogram.tag].add(histogram);
+                latestMaxValues[histogram.tag] = histogram.maxValue;
+            }
+        }
+
+        if (Object.keys(latestMaxValues).length > 0) {
+            const row = [new Date(latestTimeStampMsec)];
+            tags.forEach(tag => {
+                row.push(latestMaxValues[tag]); 
+            });
+            rows.push(row);
+        }      
+
+        let dataSeries = [];
+        tags.forEach(tag => dataSeries = appendDataSeries(accumulatedHistograms[tag].outputPercentileDistribution(), tag, dataSeries));
+
+        const chartData = google.visualization.arrayToDataTable(dataSeries);    
+
+        var end = performance.now();
+        console.log("Process logs in ", (end-begin), "ms");
+
+        return {
+            tags,
+            histogram: chartData,
+            maxDataRows: rows
+        }
+    }
+
+    function displayLogs() {
+        const data = parseLog();
+        drawChart(data.histogram);
+        drawMaxChart(data.tags, data.maxDataRows);
+    }
+
+    function handleFileSelect(evt) {
+        var files = evt.target.files; // FileList object
+
+        var names = [];
+        var histos = [];
+        var fileCount = 0;
+
+        // Loop through the FileList and render image files as thumbnails.
+        for (var i = 0, f; f = files[i]; i++) {
+            var reader = new FileReader();
+
+            reader.onload = (function(theFile) {
+                return function(e) {
+                    logs = e.target.result;
+                    displayLogs();
+                };
+            })(f);
+
+            // Read in the image file as a data URL.
+            reader.readAsText(f);
+        }
+
+    }
+
+ 
+</script><script src="./logparser_files/saved_resource" type="text/javascript"></script><link href="./logparser_files/ui+fr,table+fr,controls+fr,annotationchart+fr.css" type="text/css" rel="stylesheet"><script src="./logparser_files/format+fr,default+fr,ui+fr,table+fr,controls+fr,corechart+fr,annotationchart+fr.I.js.téléchargement" type="text/javascript"></script>
+
+<style>
+    .slider-width500
+    {
+        width: 500px;
+    }
+</style>
+
+<link href="./logparser_files/tooltip.css" rel="stylesheet" type="text/css"></head>
+
+<body>
+<h2>HdrHistogram simple log analyzer</h2>
+
+<input type="file" id="files" name="files[]" multiple="">
+
+
+<div id="max_chart_div" style="height: 200px" class="google-visualization-atl container"><div class="" style="position: relative; width: 1271px; height: 200px;"><div class="" style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><div id="max_chart_div_AnnotationChart_borderDiv" class="border" style="width: 1269px; height: 198px;"><div id="max_chart_div_AnnotationChart_containerTable" class="containerTable"><div id="max_chart_div_AnnotationChart_chartTd" class="td chartTdContainer"><div id="max_chart_div_AnnotationChart_outerChartContainer" class="outerChartContainer"><div id="max_chart_div_AnnotationChart_chartControlsContainer" class="chartControls"><div id="max_chart_div_AnnotationChart_zoomControlContainer" class="zoomControls"></div><div id="max_chart_div_AnnotationChart_legendContainer" class="legend"><span style="color:#3366CC"><div class="legend-dot" style="background-color: #3366CC"></div>NO TAG  </span>&nbsp;&nbsp;</div></div><div id="max_chart_div_AnnotationChart_chartContainer" class="chartContainer"><div style="position: relative;"><div dir="ltr" style="position: relative; width: 1269px; height: 142px;"><div style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;" aria-label="Graphique"><svg width="1269" height="142" aria-label="Graphique" style="overflow: hidden;"><defs id="defs"><clippath id="_ABSTRACT_RENDERER_ID_2"><rect x="7" y="7" width="1255" height="115"></rect></clippath></defs><rect x="0" y="0" width="1269" height="142" stroke="none" stroke-width="0" fill="#ffffff"></rect><g><rect x="7" y="7" width="1255" height="115" stroke="none" stroke-width="0" fill="#ffffff"></rect><g clip-path="url(https://hdrhistogram.github.io/HdrHistogramJSDemo/logparser.html#_ABSTRACT_RENDERER_ID_2)"><g><rect x="15" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="118" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="221" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="323" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="426" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="529" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="632" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="734" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="837" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="940" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1043" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1145" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1248" y="7" width="1" height="115" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="15" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="36" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="56" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="77" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="97" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="118" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="138" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="159" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="180" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="200" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="221" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="241" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="262" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="282" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="303" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="323" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="344" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="365" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="385" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="406" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="426" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="447" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="467" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="488" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="508" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="529" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="549" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="570" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="591" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="611" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="632" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="652" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="673" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="693" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="714" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="734" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="755" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="775" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="796" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="817" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="837" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="858" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="878" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="899" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="919" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="940" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="960" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="981" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1002" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1022" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1043" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1063" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1084" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1104" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1125" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1145" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1166" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1186" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1207" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1228" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1248" y="117" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="7" y="58" width="1255" height="1" stroke="none" stroke-width="0" fill="#ececf7"></rect><rect x="7" y="7" width="1255" height="1" stroke="none" stroke-width="0" fill="#ececf7"></rect></g><g><g><path d="M7.5,121.52589578109313L7.5,121.52589578109313L7.5,121.34980373627971L28.191780821917806,121.49689249109544L48.698630136986296,121.49792832739696L69.2876712328767,121.49792832739696L89.85616438356163,121.49792832739696L110.34246575342465,121.49792832739696L130.93150684931504,121.49689249109544L151.43835616438355,121.49585665479393L171.986301369863,121.49585665479393L192.53424657534245,23.410445591335332L228.4931506849315,121.49792832739696L233.63013698630135,121.49171330958785L254.26027397260273,121.49585665479393L274.7260273972603,121.49585665479393L295.25342465753425,121.49378498219089L315.8013698630137,121.49689249109544L336.3698630136986,121.49171330958785L356.9178082191781,121.49585665479393L377.44520547945206,121.49585665479393L397.9931506849315,121.4948208184924L418.54109589041093,121.4948208184924L439.1712328767123,121.49378498219089L459.69863013698625,121.49585665479393L480.1849315068493,121.49274914588936L500.81506849315065,121.49378498219089L521.3013698630136,121.49585665479393L541.9109589041095,121.49274914588936L562.3972602739726,121.49689249109544L582.9246575342465,121.49792832739696L603.4931506849315,60.26964454459548L633.5136986301369,121.49585665479393L644.6301369863013,121.4782474376681L665.1164383561644,121.49274914588936L685.6849315068492,121.49792832739696L706.2328767123287,121.49689249109544L726.7602739726027,121.49585665479393L747.3082191780821,121.48964163698481L767.8767123287671,121.49689249109544L788.4657534246575,121.47410409246201L809.0136986301369,121.49378498219089L829.5,121.49689249109544L850.0479452054794,121.4948208184924L870.6164383561643,121.49585665479393L891.1643835616438,121.49689249109544L911.7739726027397,121.48756996438176L932.2602739726027,121.49689249109544L952.7876712328766,121.49689249109544L973.417808219178,121.4948208184924L993.8835616438356,7.5L1033.9520547945206,121.5L1034.9794520547944,121.49689249109544L1055.5479452054794,121.49585665479393L1076.0753424657535,121.48964163698481L1096.6438356164383,121.49689249109544L1117.1712328767123,121.49689249109544L1137.7808219178082,121.49792832739696L1158.2671232876712,121.49585665479393L1178.8150684931506,121.49585665479393L1199.36301369863,121.49689249109544L1219.931506849315,121.49689249109544L1240.458904109589,121.49171330958785L1261.0068493150684,119.87580867921785L1261.0068493150684,121.52589578109313L1261.0068493150684,121.52589578109313Z" stroke="none" stroke-width="0" fill-opacity="0" fill="#3366cc"></path></g></g><g><path d="M7.5,121.34980373627971L28.191780821917806,121.49689249109544L48.698630136986296,121.49792832739696L69.2876712328767,121.49792832739696L89.85616438356163,121.49792832739696L110.34246575342465,121.49792832739696L130.93150684931504,121.49689249109544L151.43835616438355,121.49585665479393L171.986301369863,121.49585665479393L192.53424657534245,23.410445591335332L228.4931506849315,121.49792832739696L233.63013698630135,121.49171330958785L254.26027397260273,121.49585665479393L274.7260273972603,121.49585665479393L295.25342465753425,121.49378498219089L315.8013698630137,121.49689249109544L336.3698630136986,121.49171330958785L356.9178082191781,121.49585665479393L377.44520547945206,121.49585665479393L397.9931506849315,121.4948208184924L418.54109589041093,121.4948208184924L439.1712328767123,121.49378498219089L459.69863013698625,121.49585665479393L480.1849315068493,121.49274914588936L500.81506849315065,121.49378498219089L521.3013698630136,121.49585665479393L541.9109589041095,121.49274914588936L562.3972602739726,121.49689249109544L582.9246575342465,121.49792832739696L603.4931506849315,60.26964454459548L633.5136986301369,121.49585665479393L644.6301369863013,121.4782474376681L665.1164383561644,121.49274914588936L685.6849315068492,121.49792832739696L706.2328767123287,121.49689249109544L726.7602739726027,121.49585665479393L747.3082191780821,121.48964163698481L767.8767123287671,121.49689249109544L788.4657534246575,121.47410409246201L809.0136986301369,121.49378498219089L829.5,121.49689249109544L850.0479452054794,121.4948208184924L870.6164383561643,121.49585665479393L891.1643835616438,121.49689249109544L911.7739726027397,121.48756996438176L932.2602739726027,121.49689249109544L952.7876712328766,121.49689249109544L973.417808219178,121.4948208184924L993.8835616438356,7.5L1033.9520547945206,121.5L1034.9794520547944,121.49689249109544L1055.5479452054794,121.49585665479393L1076.0753424657535,121.48964163698481L1096.6438356164383,121.49689249109544L1117.1712328767123,121.49689249109544L1137.7808219178082,121.49792832739696L1158.2671232876712,121.49585665479393L1178.8150684931506,121.49585665479393L1199.36301369863,121.49689249109544L1219.931506849315,121.49689249109544L1240.458904109589,121.49171330958785L1261.0068493150684,119.87580867921785" stroke="#3366cc" stroke-width="1" fill-opacity="1" fill="none"></path></g></g><g></g><g><g><text text-anchor="middle" x="16" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:24:40 PM</text></g><g><text text-anchor="middle" x="118" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:24:45 PM</text></g><g><text text-anchor="middle" x="221" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:24:50 PM</text></g><g><text text-anchor="middle" x="324" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:24:55 PM</text></g><g><text text-anchor="middle" x="427" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:00 PM</text></g><g><text text-anchor="middle" x="529" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:05 PM</text></g><g><text text-anchor="middle" x="632" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:10 PM</text></g><g><text text-anchor="middle" x="735" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:15 PM</text></g><g><text text-anchor="middle" x="838" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:20 PM</text></g><g><text text-anchor="middle" x="940" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:25 PM</text></g><g><text text-anchor="middle" x="1043" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:30 PM</text></g><g><text text-anchor="middle" x="1146" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:35 PM</text></g><g><text text-anchor="middle" x="1249" y="135.15" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:40 PM</text></g><g><g><text text-anchor="end" x="1258" y="52.203465268445015" font-family="Arial" font-size="14" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">1000000000</text><text text-anchor="end" x="1258" y="52.203465268445015" font-family="Arial" font-size="14" stroke="none" stroke-width="0" fill="#444444">1000000000</text></g></g></g></g><g></g></svg><div aria-label="Représentation des données du graphique sous forme de tableau" style="position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden;"><table><thead><tr><th>Datetime</th><th>NO TAG  </th></tr></thead><tbody><tr><td>9 sept. 2015 à 17:24:39</td><td>2&nbsp;785&nbsp;278</td></tr><tr><td>9 sept. 2015 à 17:24:40</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:24:41</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:24:42</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:24:43</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:24:44</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:24:45</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:24:46</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:47</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:48</td><td>1&nbsp;551&nbsp;908&nbsp;862</td></tr><tr><td>9 sept. 2015 à 17:24:50</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:24:50</td><td>540&nbsp;670</td></tr><tr><td>9 sept. 2015 à 17:24:51</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:52</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:53</td><td>507&nbsp;902</td></tr><tr><td>9 sept. 2015 à 17:24:54</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:24:55</td><td>540&nbsp;670</td></tr><tr><td>9 sept. 2015 à 17:24:56</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:57</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:58</td><td>491&nbsp;518</td></tr><tr><td>9 sept. 2015 à 17:24:59</td><td>491&nbsp;518</td></tr><tr><td>9 sept. 2015 à 17:25:00</td><td>507&nbsp;902</td></tr><tr><td>9 sept. 2015 à 17:25:01</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:02</td><td>524&nbsp;286</td></tr><tr><td>9 sept. 2015 à 17:25:03</td><td>507&nbsp;902</td></tr><tr><td>9 sept. 2015 à 17:25:04</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:05</td><td>524&nbsp;286</td></tr><tr><td>9 sept. 2015 à 17:25:06</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:07</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:25:08</td><td>968&nbsp;900&nbsp;606</td></tr><tr><td>9 sept. 2015 à 17:25:10</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:10</td><td>753&nbsp;662</td></tr><tr><td>9 sept. 2015 à 17:25:11</td><td>524&nbsp;286</td></tr><tr><td>9 sept. 2015 à 17:25:12</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:25:13</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:14</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:15</td><td>573&nbsp;438</td></tr><tr><td>9 sept. 2015 à 17:25:16</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:17</td><td>819&nbsp;198</td></tr><tr><td>9 sept. 2015 à 17:25:18</td><td>507&nbsp;902</td></tr><tr><td>9 sept. 2015 à 17:25:19</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:20</td><td>491&nbsp;518</td></tr><tr><td>9 sept. 2015 à 17:25:21</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:22</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:23</td><td>606&nbsp;206</td></tr><tr><td>9 sept. 2015 à 17:25:24</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:25</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:26</td><td>491&nbsp;518</td></tr><tr><td>9 sept. 2015 à 17:25:27</td><td>1&nbsp;803&nbsp;567&nbsp;102</td></tr><tr><td>9 sept. 2015 à 17:25:29</td><td>409&nbsp;598</td></tr><tr><td>9 sept. 2015 à 17:25:29</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:30</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:31</td><td>573&nbsp;438</td></tr><tr><td>9 sept. 2015 à 17:25:32</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:33</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:34</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:25:35</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:36</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:37</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:38</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:39</td><td>540&nbsp;670</td></tr><tr><td>9 sept. 2015 à 17:25:40</td><td>26&nbsp;099&nbsp;710</td></tr></tbody></table></div></div></div><div aria-hidden="true" style="display: none; position: absolute; top: 152px; left: 1279px; white-space: nowrap; font-family: Arial; font-size: 14px;">...</div><div></div></div></div></div><div id="max_chart_div_AnnotationChart_rangeControlContainer" class="rangeControl"><div style="position: relative;"><div dir="ltr" style="position: relative; width: 1269px; height: 40px;"><div style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;" aria-label="Graphique"><svg width="1269" height="40" aria-label="Graphique" style="overflow: hidden;"><defs id="defs"><clippath id="_ABSTRACT_RENDERER_ID_1"><rect x="8" y="0" width="1252" height="40"></rect></clippath></defs><rect x="0" y="0" width="1269" height="40" stroke="none" stroke-width="0" fill="#ffffff"></rect><g><rect x="8" y="0" width="1252" height="40" stroke="#ababab" stroke-width="0.5" fill="#ffffff"></rect><g clip-path="url(https://hdrhistogram.github.io/HdrHistogramJSDemo/logparser.html#_ABSTRACT_RENDERER_ID_1)"><g><rect x="16" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="119" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="221" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="324" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="426" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="529" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="631" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="734" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="836" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="939" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1042" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1144" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1247" y="0" width="1" height="40" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="16" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="37" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="57" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="78" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="98" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="119" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="139" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="160" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="180" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="201" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="221" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="242" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="262" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="283" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="303" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="324" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="344" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="365" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="385" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="406" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="426" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="447" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="467" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="488" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="508" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="529" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="549" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="570" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="590" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="611" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="631" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="652" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="672" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="693" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="713" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="734" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="754" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="775" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="795" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="816" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="836" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="857" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="877" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="898" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="918" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="939" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="959" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="980" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1001" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1021" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1042" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1062" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1083" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1103" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1124" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1144" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1165" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1185" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1206" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1226" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1247" y="35" width="1" height="5" stroke="none" stroke-width="0" fill="#cccccc"></rect></g><g><g><path d="M8.5,54.125L8.5,54.125L8.5,30.287531648964872L29.150399973772213,37.92463324671358L49.616238279457086,38.078628035471404L70.16410399318077,38.078628035471404L90.69146285489477,38.078628035471404L111.13679430856993,38.078628035471404L131.6846600222936,37.92463324671358L152.15049832797848,37.77604293621738L172.65735033768277,37.77604293621738L193.16420234738706,3.514054422027975L229.05119336436954,38.078628035471404L234.1779063667956,37.22891034145024L254.7667857845387,37.77604293621738L275.19161038620416,37.77604293621738L295.67795554389875,37.493645750918965L316.18480755360304,37.92463324671358L336.71216641531703,37.22891034145024L357.2190184250213,37.77604293621738L377.7053635827159,37.77604293621738L398.2122155924202,37.63249058808543L418.7190676021244,37.63249058808543L439.3079470198675,37.493645750918965L459.7942921775621,37.77604293621738L480.2396236312373,37.35920945612253L500.8285030489804,37.493645750918965L521.2738345026555,37.77604293621738L541.8422070683889,37.35920945612253L562.2875385220641,37.92463324671358L582.7738836797587,38.078628035471404L603.3012425414727,5.508777531523414L633.2617533276507,37.77604293621738L644.3559602649007,35.822527969747334L664.8012917185758,37.35920945612253L685.3286505802898,38.078628035471404L705.8355025899941,37.92463324671358L726.3218477476887,37.77604293621738L746.828699757393,36.97975692779186L767.356058619107,37.92463324671358L787.9039243328307,35.469458387423316L808.4107763425349,37.493645750918965L828.85610779621,37.92463324671358L849.3629598059143,37.63249058808543L869.8903186676283,37.77604293621738L890.3971706773326,37.92463324671358L910.965543243066,36.744452752263854L931.4108746967412,37.92463324671358L951.8972198544358,37.92463324671358L972.4860992721789,37.63249058808543L992.9109238738444,2.877710026737212L1032.8992852927677,38.4045111830053L1033.9246278932528,37.92463324671358L1054.4519867549668,37.77604293621738L1074.9383319126614,36.97975692779186L1095.4656907743754,37.92463324671358L1115.95203593207,37.92463324671358L1136.5204084978034,38.078628035471404L1156.9657399514786,37.77604293621738L1177.4725919611828,37.77604293621738L1197.9794439708871,37.92463324671358L1218.5068028326011,37.92463324671358L1238.9931479902957,37.22891034145024L1259.5,20.81280210228202L1259.5,54.125L1259.5,54.125Z" stroke="none" stroke-width="0" fill-opacity="0.1" fill="#3366cc"></path></g></g><g><path d="M8.5,30.287531648964872L29.150399973772213,37.92463324671358L49.616238279457086,38.078628035471404L70.16410399318077,38.078628035471404L90.69146285489477,38.078628035471404L111.13679430856993,38.078628035471404L131.6846600222936,37.92463324671358L152.15049832797848,37.77604293621738L172.65735033768277,37.77604293621738L193.16420234738706,3.514054422027975L229.05119336436954,38.078628035471404L234.1779063667956,37.22891034145024L254.7667857845387,37.77604293621738L275.19161038620416,37.77604293621738L295.67795554389875,37.493645750918965L316.18480755360304,37.92463324671358L336.71216641531703,37.22891034145024L357.2190184250213,37.77604293621738L377.7053635827159,37.77604293621738L398.2122155924202,37.63249058808543L418.7190676021244,37.63249058808543L439.3079470198675,37.493645750918965L459.7942921775621,37.77604293621738L480.2396236312373,37.35920945612253L500.8285030489804,37.493645750918965L521.2738345026555,37.77604293621738L541.8422070683889,37.35920945612253L562.2875385220641,37.92463324671358L582.7738836797587,38.078628035471404L603.3012425414727,5.508777531523414L633.2617533276507,37.77604293621738L644.3559602649007,35.822527969747334L664.8012917185758,37.35920945612253L685.3286505802898,38.078628035471404L705.8355025899941,37.92463324671358L726.3218477476887,37.77604293621738L746.828699757393,36.97975692779186L767.356058619107,37.92463324671358L787.9039243328307,35.469458387423316L808.4107763425349,37.493645750918965L828.85610779621,37.92463324671358L849.3629598059143,37.63249058808543L869.8903186676283,37.77604293621738L890.3971706773326,37.92463324671358L910.965543243066,36.744452752263854L931.4108746967412,37.92463324671358L951.8972198544358,37.92463324671358L972.4860992721789,37.63249058808543L992.9109238738444,2.877710026737212L1032.8992852927677,38.4045111830053L1033.9246278932528,37.92463324671358L1054.4519867549668,37.77604293621738L1074.9383319126614,36.97975692779186L1095.4656907743754,37.92463324671358L1115.95203593207,37.92463324671358L1136.5204084978034,38.078628035471404L1156.9657399514786,37.77604293621738L1177.4725919611828,37.77604293621738L1197.9794439708871,37.92463324671358L1218.5068028326011,37.92463324671358L1238.9931479902957,37.22891034145024L1259.5,20.81280210228202" stroke="#3366cc" stroke-width="1" fill-opacity="1" fill="none"></path></g></g><g></g><g><g><g><text text-anchor="start" x="20" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:24:…</text><text text-anchor="start" x="20" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:24:…</text></g><rect x="20" y="28" width="30" height="9" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect></g><g><g><text text-anchor="start" x="122" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:24:45 PM</text><text text-anchor="start" x="122" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:24:45 PM</text></g></g><g><g><text text-anchor="start" x="225" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:24:50 PM</text><text text-anchor="start" x="225" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:24:50 PM</text></g></g><g><g><text text-anchor="start" x="327" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:24:55 PM</text><text text-anchor="start" x="327" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:24:55 PM</text></g></g><g><g><text text-anchor="start" x="430" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:25:00 PM</text><text text-anchor="start" x="430" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:00 PM</text></g></g><g><g><text text-anchor="start" x="532" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:25:05 PM</text><text text-anchor="start" x="532" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:05 PM</text></g></g><g><g><text text-anchor="start" x="635" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:25:10 PM</text><text text-anchor="start" x="635" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:10 PM</text></g></g><g><g><text text-anchor="start" x="737" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:25:15 PM</text><text text-anchor="start" x="737" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:15 PM</text></g></g><g><g><text text-anchor="start" x="840" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:25:20 PM</text><text text-anchor="start" x="840" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:20 PM</text></g></g><g><g><text text-anchor="start" x="942" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:25:25 PM</text><text text-anchor="start" x="942" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:25 PM</text></g></g><g><g><text text-anchor="start" x="1045" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:25:30 PM</text><text text-anchor="start" x="1045" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:30 PM</text></g></g><g><g><text text-anchor="start" x="1148" y="35.65" font-family="Arial" font-size="9" stroke="#ffffff" stroke-width="3" fill="#444444" aria-hidden="true">5:25:35 PM</text><text text-anchor="start" x="1148" y="35.65" font-family="Arial" font-size="9" stroke="none" stroke-width="0" fill="#444444">5:25:35 PM</text></g></g></g></g><g></g></svg><div aria-label="Représentation des données du graphique sous forme de tableau" style="position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden;"><table><thead><tr><th>Datetime</th><th>NO TAG  </th></tr></thead><tbody><tr><td>9 sept. 2015 à 17:24:39</td><td>2&nbsp;785&nbsp;278</td></tr><tr><td>9 sept. 2015 à 17:24:40</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:24:41</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:24:42</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:24:43</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:24:44</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:24:45</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:24:46</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:47</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:48</td><td>1&nbsp;551&nbsp;908&nbsp;862</td></tr><tr><td>9 sept. 2015 à 17:24:50</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:24:50</td><td>540&nbsp;670</td></tr><tr><td>9 sept. 2015 à 17:24:51</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:52</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:53</td><td>507&nbsp;902</td></tr><tr><td>9 sept. 2015 à 17:24:54</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:24:55</td><td>540&nbsp;670</td></tr><tr><td>9 sept. 2015 à 17:24:56</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:57</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:24:58</td><td>491&nbsp;518</td></tr><tr><td>9 sept. 2015 à 17:24:59</td><td>491&nbsp;518</td></tr><tr><td>9 sept. 2015 à 17:25:00</td><td>507&nbsp;902</td></tr><tr><td>9 sept. 2015 à 17:25:01</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:02</td><td>524&nbsp;286</td></tr><tr><td>9 sept. 2015 à 17:25:03</td><td>507&nbsp;902</td></tr><tr><td>9 sept. 2015 à 17:25:04</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:05</td><td>524&nbsp;286</td></tr><tr><td>9 sept. 2015 à 17:25:06</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:07</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:25:08</td><td>968&nbsp;900&nbsp;606</td></tr><tr><td>9 sept. 2015 à 17:25:10</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:10</td><td>753&nbsp;662</td></tr><tr><td>9 sept. 2015 à 17:25:11</td><td>524&nbsp;286</td></tr><tr><td>9 sept. 2015 à 17:25:12</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:25:13</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:14</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:15</td><td>573&nbsp;438</td></tr><tr><td>9 sept. 2015 à 17:25:16</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:17</td><td>819&nbsp;198</td></tr><tr><td>9 sept. 2015 à 17:25:18</td><td>507&nbsp;902</td></tr><tr><td>9 sept. 2015 à 17:25:19</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:20</td><td>491&nbsp;518</td></tr><tr><td>9 sept. 2015 à 17:25:21</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:22</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:23</td><td>606&nbsp;206</td></tr><tr><td>9 sept. 2015 à 17:25:24</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:25</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:26</td><td>491&nbsp;518</td></tr><tr><td>9 sept. 2015 à 17:25:27</td><td>1&nbsp;803&nbsp;567&nbsp;102</td></tr><tr><td>9 sept. 2015 à 17:25:29</td><td>409&nbsp;598</td></tr><tr><td>9 sept. 2015 à 17:25:29</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:30</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:31</td><td>573&nbsp;438</td></tr><tr><td>9 sept. 2015 à 17:25:32</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:33</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:34</td><td>442&nbsp;366</td></tr><tr><td>9 sept. 2015 à 17:25:35</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:36</td><td>475&nbsp;134</td></tr><tr><td>9 sept. 2015 à 17:25:37</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:38</td><td>458&nbsp;750</td></tr><tr><td>9 sept. 2015 à 17:25:39</td><td>540&nbsp;670</td></tr><tr><td>9 sept. 2015 à 17:25:40</td><td>26&nbsp;099&nbsp;710</td></tr></tbody></table></div></div><div style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg width="1269" height="40" aria-label="Graphique" style="overflow: hidden;"><defs id="defs"></defs><g><rect x="0" y="0" width="1269" height="40" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect><rect x="8" y="0" width="1252" height="40" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect><rect x="8" y="0" width="0.5" height="40" stroke="none" stroke-width="0" fill-opacity="0.75" fill="#f2f2f2"></rect><rect x="1260" y="0" width="0" height="40" stroke="none" stroke-width="0" fill-opacity="0.75" fill="#f2f2f2"></rect><g transform="translate(3.5, 0)"><path d="M5,0L5,40Z" stroke="#000000" stroke-width="1" fill="#ffffff"></path><path d="M3,12L7,12L10,15L10,25L7,28L3,28L0,25L0,15Z" stroke="#000000" stroke-width="1" fill="#ffffff"></path><path d="M4,16L4,24Z" stroke="#000000" stroke-width="1" fill="#ffffff"></path><path d="M6,16L6,24Z" stroke="#000000" stroke-width="1" fill="#ffffff"></path></g><g transform="translate(1255.5, 0)"><path d="M5,0L5,40Z" stroke="#000000" stroke-width="1" fill="#ffffff"></path><path d="M3,12L7,12L10,15L10,25L7,28L3,28L0,25L0,15Z" stroke="#000000" stroke-width="1" fill="#ffffff"></path><path d="M4,16L4,24Z" stroke="#000000" stroke-width="1" fill="#ffffff"></path><path d="M6,16L6,24Z" stroke="#000000" stroke-width="1" fill="#ffffff"></path></g></g></svg></div></div><div aria-hidden="true" style="display: none; position: absolute; top: 50px; left: 1279px; white-space: nowrap; font-family: Arial; font-size: 8px;">-._.-*^*-._.-*^*-._.-</div><div></div></div></div></div><div id="max_chart_div_AnnotationChart_annotationsTd" class="td annotationsTdContainer" style="width: 0px;"><div id="max_chart_div_AnnotationChart_annotationsFilterContainer" class="annotationsFilterContainer"></div><div id="max_chart_div_AnnotationChart_annotationsContainer" class="annotationsContainer"></div></div></div></div></div></div></div>
+<div style="height: 300px"> 
+<div id="chart_div"><div style="position: relative;"><div dir="ltr" style="position: relative; width: 1288px; height: 480px;"><div style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;" aria-label="Graphique"><svg width="1288" height="480" aria-label="Graphique" style="overflow: hidden;"><defs id="defs"><clippath id="_ABSTRACT_RENDERER_ID_0"><rect x="181" y="92" width="926" height="297"></rect></clippath></defs><rect x="0" y="0" width="1288" height="480" stroke="none" stroke-width="0" fill="#ffffff"></rect><g><text text-anchor="start" x="181" y="65.75" font-family="Arial" font-size="15" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">Latency by Percentile Distribution</text><rect x="181" y="53" width="926" height="15" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect></g><g><rect x="597" y="453" width="93" height="15" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect><g><rect x="597" y="453" width="93" height="15" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect><g><text text-anchor="start" x="633" y="465.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#222222">NO TAG</text></g><path d="M597,460.5L627,460.5" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path></g></g><g><rect x="181" y="92" width="926" height="297" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect><g clip-path="url(https://hdrhistogram.github.io/HdrHistogramJSDemo/logparser.html#_ABSTRACT_RENDERER_ID_0)"><g><rect x="181" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="335" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="489" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="644" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="798" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="952" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="1106" y="92" width="1" height="297" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="181" y="388" width="926" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="181" y="314" width="926" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="181" y="240" width="926" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="181" y="166" width="926" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect><rect x="181" y="92" width="926" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect></g><g><rect x="181" y="388" width="926" height="1" stroke="none" stroke-width="0" fill="#333333"></rect></g><g><path d="M181.5,388.5L188.48729256294303,388.487866516L196.44029367207537,388.473308052L205.44763910919704,388.461164948L215.83545596858573,388.456315284L227.9087909981971,388.45146562L234.89608356114013,388.449040788L242.84908467027248,388.449040788L251.85643010739415,388.446615956L262.043485998891,388.444191124L274.3175819963942,388.444191124L281.30487455933724,388.444191124L289.2578756684696,388.444191124L298.1480666879016,388.444191124L308.5527327288013,388.444191124L320.7263729945913,388.441766292L327.78902148290797,388.441766292L335.6666666666667,388.43934146L344.61546051927263,385.548979604L354.9113147013033,355.890859412L367.1351639927884,325.764746644L374.1978124811051,310.86657883600003L382.07545766486373,295.929613716L391.0242515174697,281.031445908L401.3452149188559,265.512521108L413.5439549909855,250.6143533L420.6066034793022,241.923755412L428.4842486630609,230.750129556L437.4183966154385,219.498909076L447.74145248444347,208.32528322L459.9527459891826,197.151657364L467.0059796237079,192.18560142799998L474.89303966125794,185.978031508L483.8345109642173,179.770461588L494.15652049315725,174.80440565199999L506.3615369873797,168.596835732L513.4147706219051,166.113807764L521.3018306594552,163.63077979599998L530.2433019624144,161.147751828L540.5621730596558,156.181695892L552.7703279855768,151.215639956L559.8235616201022,147.491098004L567.7106216576522,145.008070036L576.6502621980607,142.525042068L586.9725332920913,140.0420141L599.1791189837738,136.317472148L606.2335295474261,135.07595816399999L614.1194126558493,133.83444418L623.0599685837906,132.592930196L633.3805396777666,131.351416212L645.587909981971,130.109902228L652.6423205456231,128.86838824400002L660.5282036540464,127.62687426000002L669.4687595819878,127.62687426000002L679.789722983374,126.38536027599997L691.9967009801682,126.38536027599997L699.0511115438202,125.14384629199998L706.9369946522435,125.14384629199998L715.8773217344749,125.14384629199998L726.1983178281532,125.14384629199998L738.4054919783651,123.90233230799998L745.4597554270078,123.90233230799998L753.3457856504406,123.90233230799998L762.2862271556248,123.90233230799998L772.6072069031311,123.90233230799998L784.8142829765623,123.90233230799998L791.868546425205,123.90233230799998L799.7545766486377,122.66081832399999" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path></g></g><g></g><g><g><text text-anchor="middle" x="181.5" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">0%</text></g><g><text text-anchor="middle" x="335.6666666666667" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">90%</text></g><g><text text-anchor="middle" x="489.83333333333337" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">99%</text></g><g><text text-anchor="middle" x="644" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">99.9%</text></g><g><text text-anchor="middle" x="798.1666666666667" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">99.99%</text></g><g><text text-anchor="middle" x="952.3333333333335" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">99.999%</text></g><g><text text-anchor="middle" x="1106.5" y="410.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">99.9999%</text></g><g><text text-anchor="end" x="166" y="393.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">0</text></g><g><text text-anchor="end" x="166" y="319.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">500&nbsp;000&nbsp;000</text></g><g><text text-anchor="end" x="166" y="245.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">1&nbsp;000&nbsp;000&nbsp;000</text></g><g><text text-anchor="end" x="166" y="171.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">1&nbsp;500&nbsp;000&nbsp;000</text></g><g><text text-anchor="end" x="166" y="97.75" font-family="Arial" font-size="15" stroke="none" stroke-width="0" fill="#444444">2&nbsp;000&nbsp;000&nbsp;000</text></g></g></g><g><g><text text-anchor="middle" x="644" y="438.0833333333333" font-family="Arial" font-size="15" font-style="italic" stroke="none" stroke-width="0" fill="#222222">Percentile</text><rect x="181" y="425.3333333333333" width="926" height="15" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect></g><g><text text-anchor="middle" x="42.25" y="240.5" font-family="Arial" font-size="15" font-style="italic" transform="rotate(-90 42.25 240.5)" stroke="none" stroke-width="0" fill="#222222">Latency (milliseconds)</text><path d="M29.49999999999999,389L29.500000000000007,92L44.50000000000001,92L44.49999999999999,389Z" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></path></g></g><g></g></svg><div aria-label="Représentation des données du graphique sous forme de tableau" style="position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden;"><table><thead><tr><th>X</th><th>NO TAG</th></tr></thead><tbody><tr><td>1</td><td>0</td></tr><tr><td>1,11</td><td>81&nbsp;983</td></tr><tr><td>1,25</td><td>180&nbsp;351</td></tr><tr><td>1,43</td><td>262&nbsp;399</td></tr><tr><td>1,67</td><td>295&nbsp;167</td></tr><tr><td>2</td><td>327&nbsp;935</td></tr><tr><td>2,22</td><td>344&nbsp;319</td></tr><tr><td>2,5</td><td>344&nbsp;319</td></tr><tr><td>2,86</td><td>360&nbsp;703</td></tr><tr><td>3,33</td><td>377&nbsp;087</td></tr><tr><td>4</td><td>377&nbsp;087</td></tr><tr><td>4,44</td><td>377&nbsp;087</td></tr><tr><td>5</td><td>377&nbsp;087</td></tr><tr><td>5,71</td><td>377&nbsp;087</td></tr><tr><td>6,67</td><td>377&nbsp;087</td></tr><tr><td>8</td><td>393&nbsp;471</td></tr><tr><td>8,89</td><td>393&nbsp;471</td></tr><tr><td>10</td><td>409&nbsp;855</td></tr><tr><td>11,43</td><td>19&nbsp;939&nbsp;327</td></tr><tr><td>13,33</td><td>220&nbsp;332&nbsp;031</td></tr><tr><td>16</td><td>423&nbsp;886&nbsp;847</td></tr><tr><td>17,78</td><td>524&nbsp;550&nbsp;143</td></tr><tr><td>20</td><td>625&nbsp;475&nbsp;583</td></tr><tr><td>22,86</td><td>726&nbsp;138&nbsp;879</td></tr><tr><td>26,67</td><td>830&nbsp;996&nbsp;479</td></tr><tr><td>32</td><td>931&nbsp;659&nbsp;775</td></tr><tr><td>35,56</td><td>990&nbsp;380&nbsp;031</td></tr><tr><td>40</td><td>1&nbsp;065&nbsp;877&nbsp;503</td></tr><tr><td>45,71</td><td>1&nbsp;141&nbsp;899&nbsp;263</td></tr><tr><td>53,33</td><td>1&nbsp;217&nbsp;396&nbsp;735</td></tr><tr><td>64</td><td>1&nbsp;292&nbsp;894&nbsp;207</td></tr><tr><td>71,11</td><td>1&nbsp;326&nbsp;448&nbsp;639</td></tr><tr><td>80</td><td>1&nbsp;368&nbsp;391&nbsp;679</td></tr><tr><td>91,43</td><td>1&nbsp;410&nbsp;334&nbsp;719</td></tr><tr><td>106,67</td><td>1&nbsp;443&nbsp;889&nbsp;151</td></tr><tr><td>128</td><td>1&nbsp;485&nbsp;832&nbsp;191</td></tr><tr><td>142,22</td><td>1&nbsp;502&nbsp;609&nbsp;407</td></tr><tr><td>160</td><td>1&nbsp;519&nbsp;386&nbsp;623</td></tr><tr><td>182,86</td><td>1&nbsp;536&nbsp;163&nbsp;839</td></tr><tr><td>213,33</td><td>1&nbsp;569&nbsp;718&nbsp;271</td></tr><tr><td>256</td><td>1&nbsp;603&nbsp;272&nbsp;703</td></tr><tr><td>284,44</td><td>1&nbsp;628&nbsp;438&nbsp;527</td></tr><tr><td>320</td><td>1&nbsp;645&nbsp;215&nbsp;743</td></tr><tr><td>365,71</td><td>1&nbsp;661&nbsp;992&nbsp;959</td></tr><tr><td>426,67</td><td>1&nbsp;678&nbsp;770&nbsp;175</td></tr><tr><td>512</td><td>1&nbsp;703&nbsp;935&nbsp;999</td></tr><tr><td>568,89</td><td>1&nbsp;712&nbsp;324&nbsp;607</td></tr><tr><td>640</td><td>1&nbsp;720&nbsp;713&nbsp;215</td></tr><tr><td>731,43</td><td>1&nbsp;729&nbsp;101&nbsp;823</td></tr><tr><td>853,33</td><td>1&nbsp;737&nbsp;490&nbsp;431</td></tr><tr><td>1&nbsp;024</td><td>1&nbsp;745&nbsp;879&nbsp;039</td></tr><tr><td>1&nbsp;137,78</td><td>1&nbsp;754&nbsp;267&nbsp;647</td></tr><tr><td>1&nbsp;280</td><td>1&nbsp;762&nbsp;656&nbsp;255</td></tr><tr><td>1&nbsp;462,86</td><td>1&nbsp;762&nbsp;656&nbsp;255</td></tr><tr><td>1&nbsp;706,67</td><td>1&nbsp;771&nbsp;044&nbsp;863</td></tr><tr><td>2&nbsp;048</td><td>1&nbsp;771&nbsp;044&nbsp;863</td></tr><tr><td>2&nbsp;275,56</td><td>1&nbsp;779&nbsp;433&nbsp;471</td></tr><tr><td>2&nbsp;560</td><td>1&nbsp;779&nbsp;433&nbsp;471</td></tr><tr><td>2&nbsp;925,71</td><td>1&nbsp;779&nbsp;433&nbsp;471</td></tr><tr><td>3&nbsp;413,33</td><td>1&nbsp;779&nbsp;433&nbsp;471</td></tr><tr><td>4&nbsp;096</td><td>1&nbsp;787&nbsp;822&nbsp;079</td></tr><tr><td>4&nbsp;551,11</td><td>1&nbsp;787&nbsp;822&nbsp;079</td></tr><tr><td>5&nbsp;120</td><td>1&nbsp;787&nbsp;822&nbsp;079</td></tr><tr><td>5&nbsp;851,43</td><td>1&nbsp;787&nbsp;822&nbsp;079</td></tr><tr><td>6&nbsp;826,67</td><td>1&nbsp;787&nbsp;822&nbsp;079</td></tr><tr><td>8&nbsp;192</td><td>1&nbsp;787&nbsp;822&nbsp;079</td></tr><tr><td>9&nbsp;102,22</td><td>1&nbsp;787&nbsp;822&nbsp;079</td></tr><tr><td>10&nbsp;240</td><td>1&nbsp;796&nbsp;210&nbsp;687</td></tr></tbody></table></div></div></div><div aria-hidden="true" style="display: none; position: absolute; top: 490px; left: 1298px; white-space: nowrap; font-family: Arial; font-size: 15px;">NO TAG</div><div></div></div></div>
+
+Latency time units:
+<select name="units" size="1" id="timeUnitSelection" onchange="timeUnitsSelected()">
+    <option value="Latency (seconds)">seconds</option>
+    <option selected="" value="Latency (milliseconds)">milliseconds</option>
+    <option value="Latency (µs)">microseconds</option>
+    <option value="Latency (nanoseconds)">nanoseconds</option>
+</select>
+
+&nbsp; &nbsp; &nbsp; &nbsp;
+<p>
+Percentile range:
+
+<input type="range" class="slider-width500" min="1" max="8" value="7" step="1" width="300px" onchange="showValue(this.value)">
+<span id="percentileRange">99.99999%</span>
+<script type="text/javascript">
+    function showValue(newValue) {
+        var x = Math.pow(10, newValue);
+        percentile = 100.0 - (100.0 / x);
+        document.getElementById("percentileRange").innerHTML=percentile + "%";
+        maxPercentile = x;
+        drawChart();
+    }
+</script>
+</p>
+</div><div style="position: absolute; display: none;"><div style="background: infobackground; padding: 1px; border: 1px solid infotext; font-size: 9px; margin: 9px; font-family: Arial;">5:24:40 PM</div></div>
+
+
+</body></html>
