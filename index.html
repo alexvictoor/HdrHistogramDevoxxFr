@@ -382,6 +382,23 @@ histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> mi
 histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
 histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
 
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
+setInterval(() => {
+  const before = performance.now();
+  fetch("ping.json")
+    .then(_ => {
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      <mark>histogram.recordValue(latencyInMicro);</mark>
+    });
+}, 100);
+
+<mark>histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
+histogram.maxValue;                   // <span class="firstDemoMaxValue">NA</span> micro sec
+histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
+histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
+histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
+
+
 
 <section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
 setInterval(() => {
@@ -518,7 +535,8 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 
 
 <section  data-transition="fade">
-<h3>long counts[]</h3>		
+<h3>Buckets</h3>
+<p>long counts[]</p>
 <table>
 	<tr>
 		<td></td>
@@ -598,7 +616,8 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 
 
 <section data-transition="fade">
-<h3>long counts[]</h3>
+<h3>Buckets</h3>
+<p>long counts[]</p>
 <table>
 	<tr>
 		<td>&nbsp;</td>
@@ -679,7 +698,8 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 
 
 <section  data-transition="none">
-<h3>long counts[]</h3>		
+<h3>Buckets</h3>
+<p>long counts[]</p>		
 <table>
 	<tr>
 		<td></td>
@@ -759,7 +779,8 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 
 
 <section data-transition="none">
-<h3>long counts[]</h3>
+<h3>Buckets</h3>
+<p>long counts[]</p>
 <table>
 	<tr>
 		<td>&nbsp;</td>
@@ -841,7 +862,8 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 
 
 <section data-transition="none">
-<h3>long counts[]</h3>
+<h3>Buckets</h3>
+<p>long counts[]</p>
 <table>
 	<tr>
 		<td>&nbsp;</td>
@@ -1088,7 +1110,7 @@ En passant en plus à 3 chiffres significatifs, et en utilisant des integer pour
 <section>
 	<h1>Un petit benchmark</h1>
 </section>
-<section>
+<section data-transition-speed="slow" data-transition="fade-in">
 	<pre><code data-trim data-noescape class="java">
 for (int i = 0; i < nbLoop; i++) {
 
@@ -1102,7 +1124,7 @@ for (int i = 0; i < nbLoop; i++) {
 </code></pre>
 </section>
 
-<section>
+<section data-transition-speed="slow" data-transition="fade-in" >
 	<img src="coordinated-omission.png" class="stretch no_border_img" />
 </section>
 
@@ -1166,7 +1188,9 @@ for (int i = 0; i < nbLoop; i++) {
 <section>
 	<img src="coordinated-omission-schema.png" class="stretch" style="border: 0px;"/>
 </section>
-
+<section>
+	<h1>Monitoring JVM</h1>
+</section>
 <section data-background="timpul.jpg"></section>
 
 <section>
