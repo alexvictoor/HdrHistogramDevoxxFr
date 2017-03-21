@@ -167,9 +167,9 @@
 	  pour savoir si on répond au besoin, si on respect un niveau de service, un SLA, pas de secret il faut mesurer
 	</aside>
 </section>
-
+<!--
 <section data-background="measure-meme.png" data-background-size="40%">
-</section>
+</section>-->
 <section data-background="measure-problem.jpg">
 </section>
 
@@ -250,68 +250,76 @@ le 50eme => valeur médiane
 	</table>
 </section>
 
-<section data-background-color="#FFF" data-background="hdr.example.png" data-background-size="100%">
-	<h1>DEMO</h1>
-</section>
-
-
-<section data-transition="none">
+<section data-transition="none" data-state="firstDemoEnd">
 	<h3>L'API</h3>
-<pre><code data-trim data-noescape class="java">long before = System.nanoTime();
+	<pre><code data-trim data-noescape class="java"><mark>// initialisation
+Histogram histogram = new Histogram(Long.MAX_VALUE,  3);</mark>
 
+<mark>long before = System.nanoTime();</mark>
 // ce que l'on mesure
-SUT.call();                   
-
-long duration = System.nanoTime() - before;
-
-<mark>histogram.recordValue(duration);</mark></code></pre>
-	<aside class="notes">
-		Techniquement ce n'est pas simple'
-			emprunte mémoire
-			impact sur le cpu la latence
-	</aside>
-</section>
-
-<section data-transition="none">
-	<h3>L'API</h3>
-	<pre><code data-trim data-noescape class="java">long before = System.nanoTime();
-
-// ce que l'on mesure
-SUT.call();                  
-
-long duration = System.nanoTime() - before;
-
-histogram.recordValue(duration);</code></pre>
-	<aside class="notes">
-	emprunte mémoire controlée
-	pas d'allocation à l'enregistrement
-	impact cpu faible (quelques nano secondes)
-	</aside>
-</section>
-
-<section data-transition="none">
-	<h3>L'API</h3>
-	<pre><code data-trim data-noescape class="java">// initialisation
-Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
+SUT.call();                                                      
+<mark>long duration = System.nanoTime() - before;</mark>
 
 <mark>// enregistrement
-histogram.recordValue(duration);
+histogram.recordValue(duration);</mark>
 
-// consultation
+<mark>// consultation
 histogram.getValueAtPercentile(99);
 histogram.getValueAtPercentile(99.9);</mark></code></pre>
-<aside class="notes">
-	emprunte mémoire controlée
-	pas d'allocation à l'enregistrement
-	impact cpu faible (quelques nano secondes)
-	</aside>
 
 </section>
 
-<section data-transition="none">
+
+
+<section data-transition="none" data-state="firstDemoEnd">
+	<h3>L'API</h3>
+	<pre><code data-trim data-noescape class="java"><mark>// initialisation
+Histogram histogram = new Histogram(Long.MAX_VALUE,  3);</mark>
+
+// ce que l'on mesure
+long before = System.nanoTime();
+SUT.call();                                                      
+long duration = System.nanoTime() - before;
+
+<mark>// enregistrement
+histogram.recordValue(duration);</mark>
+
+<mark>// consultation
+histogram.getValueAtPercentile(99);
+histogram.getValueAtPercentile(99.9);</mark></code></pre>
+
+</section>
+
+
+<section data-transition="none" data-state="firstDemoEnd">
 	<h3>L'API</h3>
 	<pre><code data-trim data-noescape class="java">// initialisation
 Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
+
+// ce que l'on mesure
+long before = System.nanoTime();
+SUT.call();                                                      
+long duration = System.nanoTime() - before;
+
+<mark>// enregistrement
+histogram.recordValue(duration);</mark>
+
+<mark>// consultation
+histogram.getValueAtPercentile(99);
+histogram.getValueAtPercentile(99.9);</mark></code></pre>
+
+</section>
+
+
+<section data-transition="none" data-state="firstDemoEnd">
+	<h3>L'API</h3>
+	<pre><code data-trim data-noescape class="java">// initialisation
+Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
+
+// ce que l'on mesure
+long before = System.nanoTime();
+SUT.call();                                                      
+long duration = System.nanoTime() - before;
 
 // enregistrement
 histogram.recordValue(duration);
@@ -326,6 +334,11 @@ histogram.getValueAtPercentile(99.9);</mark></code></pre>
 	<h3>L'API</h3>
 	<pre><code data-trim data-noescape class="java">// initialisation
 Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
+
+// ce que l'on mesure
+long before = System.nanoTime();
+SUT.call();                                                      
+long duration = System.nanoTime() - before;
 
 // enregistrement
 histogram.recordValue(duration);
@@ -355,6 +368,23 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 
 <section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
 setInterval(() => {
+  <mark>const before = performance.now();</mark>
+  fetch("ping.json")
+    <mark>.then(_ => {
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro"> NA </span> micro sec  
+      histogram.recordValue(latencyInMicro);
+    });</mark>
+}, 100);
+<mark>
+histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
+histogram.maxValue                    // <span class="firstDemoMaxValue">NA</span> micro sec
+histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
+histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
+histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
+
+
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
+setInterval(() => {
   const before = performance.now();
   fetch("ping.json")
     .then(_ => {
@@ -380,6 +410,71 @@ setInterval(() => {
 }, 100);
 
 histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
+<mark>histogram.maxValue;                   // <span class="firstDemoMaxValue">NA</span> micro sec
+histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
+histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
+histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
+
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
+setInterval(() => {
+  const before = performance.now();
+  fetch("ping.json")
+    .then(_ => {
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      histogram.recordValue(latencyInMicro);
+    });
+}, 100);
+
+histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
+histogram.maxValue;                   // <span class="firstDemoMaxValue">NA</span> micro sec
+<mark>histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
+histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
+histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
+
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
+setInterval(() => {
+  const before = performance.now();
+  fetch("ping.json")
+    .then(_ => {
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      histogram.recordValue(latencyInMicro);
+    });
+}, 100);
+
+histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
+histogram.maxValue;                   // <span class="firstDemoMaxValue">NA</span> micro sec
+histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
+<mark>histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
+histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
+
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
+setInterval(() => {
+  const before = performance.now();
+  fetch("ping.json")
+    .then(_ => {
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      histogram.recordValue(latencyInMicro);
+    });
+}, 100);
+
+histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
+histogram.maxValue;                   // <span class="firstDemoMaxValue">NA</span> micro sec
+histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
+histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
+<mark>histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
+
+
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
+setInterval(() => {
+  const before = performance.now();
+  fetch("ping.json")
+    .then(_ => {
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      histogram.recordValue(latencyInMicro);
+    });
+}, 100);
+
+histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
 histogram.maxValue                    // <span class="firstDemoMaxValue">NA</span> micro sec
 histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
 histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
@@ -391,7 +486,15 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 
 <span class="firstDemoOutput">NA</span></code></pre></section>
 
+<section data-state="firstDemoEnd" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">histogram.outputPercentileDistribution();
 
+
+<span class="firstDemoOutput">NA</span></code></pre></section>
+
+
+<section data-background-color="#FFF" data-background="hdr.example.png" data-background-size="100%">
+	<h1>DEMO</h1>
+</section>
 
 <section data-state="firstDemoEnd" data-transition="fade">
 	<h1>Comment ça marche ?</h1>
@@ -575,7 +678,169 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 
 
 
-<section data-transition="fade">
+<section  data-transition="none">
+<h3>long counts[]</h3>		
+<table>
+	<tr>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+
+		<td></td>
+		<td></td>
+		<td></td>
+		<td><span class="fragment current-visible fade-left" data-fragment-index="0">7</span></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+	</tr>
+</table>
+
+<table>
+	<tr>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+
+		<td></td>
+		<td></td>
+		<td></td>
+		<td><span class="fragment current-visible" data-fragment-index="2">+1</span></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+	</tr>
+</table>
+
+<table class="schema">
+	<tr>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>1</td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+	</tr>
+</table>
+
+</section>
+
+
+<section data-transition="none">
+<h3>long counts[]</h3>
+<table>
+	<tr>
+		<td>&nbsp;</td>
+		<td></td>
+		<td></td>
+		<td></td>
+
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+	</tr>
+</table>
+
+<table>
+	<tr>
+		<td>&nbsp;</td>
+		<td></td>
+		<td></td>
+		<td></td>
+
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		
+	</tr>
+</table>
+
+<table class="schema">
+	<tr>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td><span style="font-weight: bold;">2</span></td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		<td>0</td>
+		
+	</tr>
+</table>
+
+</section>
+
+
+
+
+<section data-transition="none">
 <h3>long counts[]</h3>
 <table>
 	<tr>
@@ -637,7 +902,7 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 		<td>3</td>
 		<td>8</td>
 		<td>4</td>
-		<td>1</td>
+		<td>2</td>
 		
 		<td>9</td>
 		<td>2</td>
