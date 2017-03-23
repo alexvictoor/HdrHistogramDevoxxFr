@@ -251,104 +251,8 @@ le 50eme => valeur médiane
 </section>
 
 <section data-transition="none" data-state="firstDemoEnd">
-	<h3>L'API</h3>
-	<pre><code data-trim data-noescape class="java"><mark>// initialisation
-Histogram histogram = new Histogram(Long.MAX_VALUE,  3);</mark>
-
-<mark>long before = System.nanoTime();</mark>
-// ce que l'on mesure
-SUT.call();                                                      
-<mark>long duration = System.nanoTime() - before;</mark>
-
-<mark>// enregistrement
-histogram.recordValue(duration);</mark>
-
-<mark>// consultation
-histogram.getValueAtPercentile(99);
-histogram.getValueAtPercentile(99.9);</mark></code></pre>
-
+	<h1>L'API</h1>
 </section>
-
-
-
-<section data-transition="none" data-state="firstDemoEnd">
-	<h3>L'API</h3>
-	<pre><code data-trim data-noescape class="java"><mark>// initialisation
-Histogram histogram = new Histogram(Long.MAX_VALUE,  3);</mark>
-
-// ce que l'on mesure
-long before = System.nanoTime();
-SUT.call();                                                      
-long duration = System.nanoTime() - before;
-
-<mark>// enregistrement
-histogram.recordValue(duration);</mark>
-
-<mark>// consultation
-histogram.getValueAtPercentile(99);
-histogram.getValueAtPercentile(99.9);</mark></code></pre>
-
-</section>
-
-
-<section data-transition="none" data-state="firstDemoEnd">
-	<h3>L'API</h3>
-	<pre><code data-trim data-noescape class="java">// initialisation
-Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
-
-// ce que l'on mesure
-long before = System.nanoTime();
-SUT.call();                                                      
-long duration = System.nanoTime() - before;
-
-<mark>// enregistrement
-histogram.recordValue(duration);</mark>
-
-<mark>// consultation
-histogram.getValueAtPercentile(99);
-histogram.getValueAtPercentile(99.9);</mark></code></pre>
-
-</section>
-
-
-<section data-transition="none" data-state="firstDemoEnd">
-	<h3>L'API</h3>
-	<pre><code data-trim data-noescape class="java">// initialisation
-Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
-
-// ce que l'on mesure
-long before = System.nanoTime();
-SUT.call();                                                      
-long duration = System.nanoTime() - before;
-
-// enregistrement
-histogram.recordValue(duration);
-
-<mark>// consultation
-histogram.getValueAtPercentile(99);
-histogram.getValueAtPercentile(99.9);</mark></code></pre>
-
-</section>
-
-<section data-transition="none" data-state="firstDemoEnd">
-	<h3>L'API</h3>
-	<pre><code data-trim data-noescape class="java">// initialisation
-Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
-
-// ce que l'on mesure
-long before = System.nanoTime();
-SUT.call();                                                      
-long duration = System.nanoTime() - before;
-
-// enregistrement
-histogram.recordValue(duration);
-
-// consultation
-histogram.getValueAtPercentile(99);
-histogram.getValueAtPercentile(99.9);</code></pre>
-
-</section>
-
 
 <section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
 <mark>setInterval(() => {
@@ -367,13 +271,46 @@ histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> mic
 histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
 
 <section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
+<mark>setInterval(() => {</mark>
+  <mark>const before = performance.now();</mark>
+  fetch("ping.json")
+    .then(_ => {
+      <mark>const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro"> NA </span> micro sec  
+      histogram.recordValue(latencyInMicro);</mark>
+    });
+<mark>}, 100);
+
+histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
+histogram.maxValue                    // <span class="firstDemoMaxValue">NA</span> micro sec
+histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
+histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
+histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
+
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
 setInterval(() => {
   <mark>const before = performance.now();</mark>
   fetch("ping.json")
-    <mark>.then(_ => {
-      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro"> NA </span> micro sec  
-      histogram.recordValue(latencyInMicro);
-    });</mark>
+    .then(_ => {
+      <mark>const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro"> NA </span> micro sec  
+      histogram.recordValue(latencyInMicro);</mark>
+    });
+}, 100);
+<mark>
+histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
+histogram.maxValue                    // <span class="firstDemoMaxValue">NA</span> micro sec
+histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> micro sec
+histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
+histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</mark></code></pre></section>
+
+
+<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
+setInterval(() => {
+  const before = performance.now();
+  fetch("ping.json")
+    .then(_ => {
+      <mark>const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro"> NA </span> micro sec  
+      histogram.recordValue(latencyInMicro);</mark>
+    });
 }, 100);
 <mark>
 histogram.getTotalCount();            // <span class="firstDemoTotalCount">NA</span>
@@ -1092,30 +1029,33 @@ for (int i = 0; i < nbLoop; i++) {
 </section>
 
 <section data-transition="fade-in">
-    <img src="schema-co-1.png" class="stretch no_border_img" data-transition="fade-in"/>
+    <img src="schema-co-1.png" class="stretch no_border_img"/>
 </section>
 <section data-transition="fade-in">
-    <img src="schema-co-2.png" class="stretch no_border_img" data-transition="fade-in"/>
+    <img src="schema-co-2.png" class="stretch no_border_img"/>
 </section>
 <section data-transition="fade-in">
-    <img src="schema-co-3.png" class="stretch no_border_img" data-transition="fade-in"/>
+    <img src="schema-co-3.png" class="stretch no_border_img"/>
 </section>
 <section data-transition="fade-in">
-    <img src="schema-co-4.png" class="stretch no_border_img" data-transition="fade-in"/>
+    <img src="schema-co-4.png" class="stretch no_border_img"/>
 </section>
 <section data-transition="fade-in">
-    <img src="schema-co-5.png" class="stretch no_border_img" data-transition="fade-in"/>
+    <img src="schema-co-5.png" class="stretch no_border_img"/>
 </section>
 	
-	
+<section data-transition-speed="slow" data-transition="fade-in" >
+	<img src="coordinated-omission.png" class="stretch no_border_img" />
+</section>
+
 <section data-transition="fade-in">
-    <img src="co-schema-sleep-1.png" class="stretch no_border_img" data-transition="fade-in"/>
+    <img src="co-schema-sleep-1.png" class="stretch no_border_img"/>
 </section>
 <section data-transition="fade-in">
-    <img src="co-schema-sleep-2.png" class="stretch no_border_img" data-transition="fade-in"/>
+    <img src="co-schema-sleep-2.png" class="stretch no_border_img"/>
 </section>
 <section data-transition="fade-in">
-    <img src="co-schema-sleep-3.png" class="stretch no_border_img" data-transition="fade-in"/>
+    <img src="co-schema-sleep-3.png" class="stretch no_border_img"/>
 </section>
 <section data-transition="fade-in">
     <img src="co-schema-sleep-4.png" class="stretch no_border_img" />
@@ -1125,9 +1065,7 @@ for (int i = 0; i < nbLoop; i++) {
 </section>
 
 
-<section data-transition-speed="slow" data-transition="fade-in" >
-	<img src="coordinated-omission.png" class="stretch no_border_img" />
-</section>
+
 
 <!--
 <section data-transition="fade-in">
@@ -1179,9 +1117,10 @@ for (int i = 0; i < nbLoop; i++) {
 </table>
 </section>
 -->
-<section>
+
+<!--<section>
 	<img src="coordinated-omission-graph.png" class="stretch no_border_img" />
-</section>
+</section>-->
 
 <!--
 <section>
