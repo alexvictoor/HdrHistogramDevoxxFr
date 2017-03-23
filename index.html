@@ -949,7 +949,13 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 	</div>
 </section>
 
-
+<section data-transition="fade">
+	<h1>123</h1>
+</section>
+				
+<section data-transition="fade">
+	<h1>124</h1>
+</section>
 
 <section data-transition="fade">
 	<h1>123 000</h1>
@@ -1000,31 +1006,7 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 </section>
 
 
-
 <!--
-<section>
-	<table>
-		<tr>
-			<th>Chiffres significatifs</th>
-			<th>Taille des buckets</th>
-		</tr>
-		<tr>
-			<td>2</td>
-			<td>256</td>
-		</tr>
-		<tr>
-			<td>3</td>
-			<td>2048</td>
-		</tr>
-		<tr>
-			<td>5</td>
-			<td>????</td>
-		</tr>
-
-	</table>
-
-</section>
--->
 <section data-transition="fade">
 
 	new Histogram(<span style="font-weight: bold; color: red"> 3 </span>)
@@ -1037,25 +1019,6 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 	</aside>
 
 </section>
-
-<!--
-<section data-transition="fade">
-
-<ul>
-	<li>new Histogram(<span style="font-weight: bold"> 3 </span>)</li>
-	<li class="fragment">new Histogram(<span style="font-weight: bold"> MAX_VALUE </span>, 3 )</li>
-	<li class="fragment">new <span style="font-weight: bold">IntCounts</span>Histogram( MAX_VALUE , 3 )</li>
-	<li class="fragment">new <span style="font-weight: bold">ShortCounts</span>Histogram( MAX_VALUE , 3 )</li>
-</ul>
-	<aside class="notes">
-		3 facteurs pour tunner l'emprunte mémoire
-		nb chiffres significatifs => taille des buckets
-		3 => 2048 cases
-		TODO la taille des buckets pour 5 chiffres significatifs
-	</aside>
-
-</section>
--->
 
 <section data-transition="fade">
 	new Histogram(<span style="font-weight: bold; color: red"> MAX_VALUE </span>, 3 )
@@ -1085,7 +1048,7 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 	</aside>
 
 </section>
-
+-->
 
 <section>
 	new Histogram( Long.MAX_VALUE , 5 )
@@ -1122,12 +1085,17 @@ for (int i = 0; i < nbLoop; i++) {
 
 }
 </code></pre>
+<aside class="notes">
+	un petit bench rapide que l'on a tous fait
+	montrer graph avec les discontinuités
+</aside>
 </section>
 
 <section data-transition-speed="slow" data-transition="fade-in" >
 	<img src="coordinated-omission.png" class="stretch no_border_img" />
 </section>
 
+<!--
 <section data-transition="fade-in">
 	<h3>Coordinated ommission</h3>
 	<h3>&nbsp;</h3>
@@ -1176,15 +1144,18 @@ for (int i = 0; i < nbLoop; i++) {
 	
 </table>
 </section>
+-->
 <section>
 	<img src="coordinated-omission-graph.png" class="stretch no_border_img" />
 </section>
 
+<!--
 <section>
 	histogram.recordValueWithExpectedInterval(value, expectedInterval);
 </section>
 <section align="left" data-transition="fade-up">correctedHistogram =<br/>&nbsp;&nbsp;&nbsp;&nbsp;histogram.copyCorrectedForCoordinatedOmission(expectedInterval);
 </section>
+-->
 <section>
 	<img src="coordinated-omission-schema.png" class="stretch" style="border: 0px;"/>
 </section>
