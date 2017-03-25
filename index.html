@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+		<title>HdrHistogram</title>
 
 		<link rel="stylesheet" href="css/reveal.css">
 		<link rel="stylesheet" href="css/theme/serif.css">
@@ -205,15 +205,7 @@
 		 isolées, des valeurs très éloignées de la moyenne
 	</aside>
 </section>
-<!--
-<section data-background="brexit.png" data-background-size="80%">
-	<aside class="notes">
-		wikipedia
-En statistiques, un histogramme est un graphique permettant de représenter la répartition d'une variable continue.
-Un histogram c'est un outil graphique qui permet de représenter la répartition d'un ensemble de données
-	</aside>	
-</section>
--->
+
 <section data-background="iosnoop_hist_full6.png" data-background-size="95%">
 
 	<aside class="notes">
@@ -233,6 +225,38 @@ le 50eme => valeur médiane
 	</aside>
 </section>
 
+
+
+<section data-transition="fade-in">	
+	<h3>Quantiles, quartiles et centiles</h3>
+	<h3>&nbsp;</h3>
+	<h3>13 22 28 36 42 45 49 50 77 81 90</h3>
+</section>
+<section data-transition="fade-in">	
+	<h3>Quantiles, quartiles et centiles</h3>
+	<h3>&nbsp;</h3>
+	<h3>13 22 28 36 42 <span style="color: white; background: black">45</span> 49 50 77 81 90</h3>
+</section>
+<section data-transition="fade-in">	
+	<h3>Quantiles, quartiles et centiles</h3>
+	<h3>&nbsp;</h3>
+	<h3>13 22 <span style="color: white; background: black">28</span> 36 42 <span style="color: red">45</span> 49 50 77 81 90</h3>
+</section>
+<section data-transition="fade-in">	
+	<h3>Quantiles, quartiles et centiles</h3>
+	<h3>&nbsp;</h3>
+	<h3>13 22 <span style="color: red">28</span> 36 42 <span style="color: red">45</span> 49 50 <span style="color: white; background: black">77</span> 81 90</h3>
+</section>
+
+<!--
+<section data-background="brexit.png" data-background-size="80%">
+	<aside class="notes">
+		wikipedia
+En statistiques, un histogramme est un graphique permettant de représenter la répartition d'une variable continue.
+Un histogram c'est un outil graphique qui permet de représenter la répartition d'un ensemble de données
+	</aside>	
+</section>
+-->
 
 
 <section>
@@ -462,7 +486,7 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 
 
 <section data-background-color="#FFF" data-background="hdr.example.png" data-background-size="100%">
-	<h1>DEMO</h1>
+	<h1>EN IMAGE</h1>
 </section>
 
 <section data-state="firstDemoEnd" data-transition="fade">
@@ -1155,18 +1179,19 @@ for (int i = 0; i < nbLoop; i++) {
 <section align="left" data-transition="fade-up">correctedHistogram =<br/>&nbsp;&nbsp;&nbsp;&nbsp;histogram.copyCorrectedForCoordinatedOmission(expectedInterval);
 </section>
 -->
+
+<section data-transition="none">
+	<pre><code data-trim data-noescape class="JavaScript">
+		// correction en live
+		histogram.recordValueWithExpectedInterval(value, expectedInterval);
+
+		// correction à froid
+		correctedHistogram = histogram.copyCorrectedForCoordinatedOmission(expectedInterval);
+	
+	</code></pre>
+</section>
 <section>
 	<img src="coordinated-omission-schema.png" class="stretch" style="border: 0px;"/>
-</section>
-<section>
-	<h1>Monitoring JVM</h1>
-</section>
-<section data-background="timpul.jpg"></section>
-
-<section>
-	<h1>jHiccup</h1>
-	<h3>&nbsp;</h3>
-	<p>java&nbsp;&nbsp;-javaagent:jHiccup.jar&nbsp;&nbsp;MyProgram</p>
 </section>
 <section>
 	<img src="jhiccup-schema.png" class="stretch no_border_img" />
@@ -1193,7 +1218,18 @@ for (int i = 0; i < nbLoop; i++) {
 </section>
 
 <section>
-<h3>Pour aller plus loin</h3>
+<h3>Pour aller plus loin...</h3>
+<h3>&nbsp;</h3>
+<ul>
+	<li>"Comment rater ses benchmarks ?" par @pingtimeout</li>
+	<li>"How NOT to Measure Latency?" par @giltene</li>
+	<li>"<a href=" http://psy-lob-saw.blogspot.fr/2015/02/hdrhistogram-better-latency-capture.html">HdrHistogram: A better latency capture method</a>" par @nitsanw</li>
+</ul>
+<h3>&nbsp;</h3>
+<aside class="notes">
+	Pierre Laporte
+	Nitsan Wakart
+</aside>
 </section>
 
 			</div>
