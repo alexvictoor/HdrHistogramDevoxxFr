@@ -173,12 +173,27 @@
 <section data-background="measure-problem.jpg">
 </section>
 
-<section data-background-color="#FFF" data-background-iframe="./Anscombe/index.html">
-	<aside class="notes">
+<section data-transition="fade-in">
+    <img src="anscombe1.png" class="stretch no_border_img"/>
+</section>
+
+<section data-transition="fade-in">
+    <img src="anscombe2.png" class="stretch no_border_img"/>
+</section>
+
+<section data-transition="fade-in">
+    <img src="anscombe3.png" class="stretch no_border_img"/>
+</section>
+
+<section data-transition="fade-in">
+    <img src="anscombe4.png" class="stretch no_border_img"/>
+		<aside class="notes">
 	Pour démarer en douceur
 	les moyennes c'est bien mais c'est rarement suffisant
 	</aside>
 </section>
+
+
 <section data-background-color="#FFF">
 	<!--<img src="be_above_average.jpg" />-->
 	<h3>DON'T BE MEAN BE ABOVE AVERAGE</h3>
@@ -452,10 +467,21 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
 
 <section data-state="firstDemoEnd" data-transition="fade">
 	<h1>Comment ça marche ?</h1>
+	<aside class="notes">
+emprunte mémoire maitrisée
+quelques nano sec pour l enregistrement de valeurs
+
+	</aside>
 </section>
 
 <section data-background="numbers2.jpg">
-
+<aside class="notes">
+	plusieurs solutions viennent en tête
+	stocker tous les temps de réponses observés -> au niveau emprunte mem pas top
+	stocker une partie des temps de réponses observés, en gros en faisant du sampling -> pas top car
+	on ne peut pas faire d'hypothèses sur la manière dont sont distribuées les valeurs
+	une autre solution serait de raisonner avec des compteurs
+</aside>
 </section>
 
 <section  data-transition="fade-up">
