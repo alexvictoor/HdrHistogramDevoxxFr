@@ -291,6 +291,7 @@ Un histogram c'est un outil graphique qui permet de représenter la répartition
 
 <section data-transition="none" data-state="firstDemoEnd">
 	<h1>L'API</h1>
+	<img src="demojs.png" class="stretch no_border_img"/>
 </section>
 
 <section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">const histogram = hdr.build();
@@ -936,13 +937,6 @@ quelques nano sec pour l enregistrement de valeurs
 	</div>
 </section>
 
-<section data-transition="fade">
-	<h1>124</h1>
-</section>
-				
-<section data-transition="fade">
-	<h1>123</h1>
-</section>
 
 <section data-transition="fade">
 	<h1>123 000</h1>
@@ -1036,6 +1030,15 @@ quelques nano sec pour l enregistrement de valeurs
 
 </section>
 -->
+<section>
+	<h3>Tuning mémoire</h3>
+	<ul>
+		<li class="fragment">Nombres de chiffres significatifs</li>
+		<li class="fragment">La valeur MAX autorisée</li>
+		<li class="fragment">Le type primitif de mon tableau</li>
+	</ul>
+	
+</section>
 
 <section>
 	new Histogram( Long.MAX_VALUE , 5 )
@@ -1065,7 +1068,7 @@ En passant en plus à 3 chiffres significatifs, et en utilisant des integer pour
 for (int i = 0; i < nbLoop; i++) {
 
   long start = System.nanoTime();
-  logger.info("New message - {}", i);
+  client.send(new Request(i));
   histogram.recordValue((System.nanoTime() - start));
 
   Thread.sleep(1);
@@ -1190,9 +1193,14 @@ for (int i = 0; i < nbLoop; i++) {
 	
 	</code></pre>
 </section>
-<section>
+<!--<section>
 	<img src="coordinated-omission-schema.png" class="stretch" style="border: 0px;"/>
+</section>-->
+<section>	
+
+	<h1>Monitoring de la JVM</h1>
 </section>
+
 <section>
 	<img src="jhiccup-schema.png" class="stretch no_border_img" />
 	<p>&nbsp;</p>
@@ -1218,7 +1226,7 @@ for (int i = 0; i < nbLoop; i++) {
 </section>
 
 <section>
-<h3>Pour aller plus loin...</h3>
+<h3>Pour aller plus loin</h3>
 <h3>&nbsp;</h3>
 <ul>
 	<li>"Comment rater ses benchmarks ?" par @pingtimeout</li>
