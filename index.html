@@ -289,8 +289,105 @@ Un histogram c'est un outil graphique qui permet de représenter la répartition
 	</table>
 </section>
 
-<section data-transition="none" data-state="firstDemoEnd">
+<section data-state="firstDemoEnd">
 	<h1>L'API</h1>
+</section>
+
+<section data-transition="none" data-state="firstDemoEnd">
+	<pre><code data-trim data-noescape class="java"><mark>// initialisation
+Histogram histogram = new Histogram(Long.MAX_VALUE,  3);</mark>
+
+<mark>long before = System.nanoTime();</mark>
+// ce que l'on mesure
+SUT.call();                                                      
+<mark>long duration = System.nanoTime() - before;</mark>
+
+<mark>// enregistrement
+histogram.recordValue(duration);</mark>
+
+<mark>// consultation
+histogram.getValueAtPercentile(99);
+histogram.getValueAtPercentile(99.9);</mark></code></pre>
+
+</section>
+
+<section data-transition="none" data-state="firstDemoEnd">
+	<pre><code data-trim data-noescape class="java"><mark>// initialisation
+Histogram histogram = new Histogram(Long.MAX_VALUE,  3);</mark>
+
+// ce que l'on mesure
+long before = System.nanoTime();
+SUT.call();                                                      
+long duration = System.nanoTime() - before;
+
+<mark>// enregistrement
+histogram.recordValue(duration);</mark>
+
+<mark>// consultation
+histogram.getValueAtPercentile(99);
+histogram.getValueAtPercentile(99.9);</mark></code></pre>
+
+</section>
+
+
+<section data-transition="none" data-state="firstDemoEnd">
+	<pre><code data-trim data-noescape class="java">// initialisation
+Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
+
+// ce que l'on mesure
+long before = System.nanoTime();
+SUT.call();                                                      
+long duration = System.nanoTime() - before;
+
+<mark>// enregistrement
+histogram.recordValue(duration);</mark>
+
+<mark>// consultation
+histogram.getValueAtPercentile(99);
+histogram.getValueAtPercentile(99.9);</mark></code></pre>
+
+</section>
+
+<section data-transition="none" data-state="firstDemoEnd">
+	<pre><code data-trim data-noescape class="java">// initialisation
+Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
+
+// ce que l'on mesure
+long before = System.nanoTime();
+SUT.call();                                                      
+long duration = System.nanoTime() - before;
+
+// enregistrement
+histogram.recordValue(duration);
+
+<mark>// consultation
+histogram.getValueAtPercentile(99);
+histogram.getValueAtPercentile(99.9);</mark></code></pre>
+
+</section>
+
+<section data-transition="none" data-state="firstDemoEnd">
+	<pre><code data-trim data-noescape class="java">// initialisation
+Histogram histogram = new Histogram(Long.MAX_VALUE,  3);
+
+// ce que l'on mesure
+long before = System.nanoTime();
+SUT.call();                                                      
+long duration = System.nanoTime() - before;
+
+// enregistrement
+histogram.recordValue(duration);
+
+// consultation
+histogram.getValueAtPercentile(99);
+histogram.getValueAtPercentile(99.9);</code></pre>
+
+</section>
+
+
+
+<section data-transition="none" data-state="firstDemoEnd">
+	<h1>DEMO</h1>
 	<img src="demojs.png" class="stretch no_border_img"/>
 </section>
 
@@ -299,7 +396,7 @@ Un histogram c'est un outil graphique qui permet de représenter la répartition
   const before = performance.now();
   fetch("ping.json")
     .then(_ => {
-      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro"> NA </span> micro sec  
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span> micro sec  
       histogram.recordValue(latencyInMicro);
     });
 }, 100);
@@ -315,7 +412,7 @@ histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span>
   <mark>const before = performance.now();</mark>
   fetch("ping.json")
     .then(_ => {
-      <mark>const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro"> NA </span> micro sec  
+      <mark>const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span> micro sec  
       histogram.recordValue(latencyInMicro);</mark>
     });
 <mark>}, 100);
@@ -331,7 +428,7 @@ setInterval(() => {
   <mark>const before = performance.now();</mark>
   fetch("ping.json")
     .then(_ => {
-      <mark>const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro"> NA </span> micro sec  
+      <mark>const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span> micro sec  
       histogram.recordValue(latencyInMicro);</mark>
     });
 }, 100);
@@ -348,7 +445,7 @@ setInterval(() => {
   const before = performance.now();
   fetch("ping.json")
     .then(_ => {
-      <mark>const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro"> NA </span> micro sec  
+      <mark>const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span> micro sec  
       histogram.recordValue(latencyInMicro);</mark>
     });
 }, 100);
@@ -364,7 +461,7 @@ setInterval(() => {
   const before = performance.now();
   fetch("ping.json")
     .then(_ => {
-      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span> micro sec  
       <mark>histogram.recordValue(latencyInMicro);</mark>
     });
 }, 100);
@@ -382,7 +479,7 @@ setInterval(() => {
   const before = performance.now();
   fetch("ping.json")
     .then(_ => {
-      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span> micro sec  
       histogram.recordValue(latencyInMicro);
     });
 }, 100);
@@ -398,7 +495,7 @@ setInterval(() => {
   const before = performance.now();
   fetch("ping.json")
     .then(_ => {
-      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span> micro sec  
       histogram.recordValue(latencyInMicro);
     });
 }, 100);
@@ -414,7 +511,7 @@ setInterval(() => {
   const before = performance.now();
   fetch("ping.json")
     .then(_ => {
-      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span> micro sec  
       histogram.recordValue(latencyInMicro);
     });
 }, 100);
@@ -430,7 +527,7 @@ setInterval(() => {
   const before = performance.now();
   fetch("ping.json")
     .then(_ => {
-      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span> micro sec  
       histogram.recordValue(latencyInMicro);
     });
 }, 100);
@@ -446,7 +543,7 @@ setInterval(() => {
   const before = performance.now();
   fetch("ping.json")
     .then(_ => {
-      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span> micro sec  
       histogram.recordValue(latencyInMicro);
     });
 }, 100);
@@ -463,7 +560,7 @@ setInterval(() => {
   const before = performance.now();
   fetch("ping.json")
     .then(_ => {
-      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span>  micro sec  
+      const latencyInMicro = floor((performance.now() - before) * 1000); // <span class="firstDemoLatencyInMicro">NA</span> micro sec  
       histogram.recordValue(latencyInMicro);
     });
 }, 100);
@@ -1081,6 +1178,10 @@ for (int i = 0; i < nbLoop; i++) {
 </aside>
 </section>
 
+<section data-transition-speed="slow" data-transition="fade-in" >
+	<img src="coordinated-omission.png" class="stretch no_border_img" />
+</section>
+
 <section data-transition="fade-in">
     <img src="schema-co-1.png" class="stretch no_border_img"/>
 </section>
@@ -1097,10 +1198,6 @@ for (int i = 0; i < nbLoop; i++) {
     <img src="schema-co-5.png" class="stretch no_border_img"/>
 </section>
 	
-<section data-transition-speed="slow" data-transition="fade-in" >
-	<img src="coordinated-omission.png" class="stretch no_border_img" />
-</section>
-
 <section data-transition="fade-in">
     <img src="co-schema-sleep-1.png" class="stretch no_border_img"/>
 </section>
