@@ -572,12 +572,6 @@ histogram.getValueAtPercentile(99.9); // <span class="firstDemoNNN">NA</span> mi
 histogram.getValueAtPercentile(99);   // <span class="firstDemoNN">NA</span> micro sec
 histogram.getValueAtPercentile(50);   // <span class="firstDemoMedian">NA</span> micro sec</code></pre></section>
 
-
-<section data-state="firstDemo" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">histogram.outputPercentileDistribution();
-
-
-<span class="firstDemoOutput">NA</span></code></pre></section>
-
 <section data-state="firstDemoEnd" data-transition="none"><h3>DEMO JS</h3><pre><code data-trim data-noescape class="JavaScript">histogram.outputPercentileDistribution();
 
 
@@ -1396,7 +1390,10 @@ for (int i = 0; i < nbLoop; i++) {
 							forEachNode("firstDemoNNN", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getValueAtPercentile(99.9)}</span>`);
 							forEachNode("firstDemoNN", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getValueAtPercentile(99)}</span>`);
 							forEachNode("firstDemoMedian", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.getValueAtPercentile(50)}</span>`);
-							forEachNode("firstDemoOutput", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.outputPercentileDistribution()}</span>`);
+							
+							if (histogram.getTotalCount() % 20 === 0) {
+								forEachNode("firstDemoOutput", elt => elt.innerHTML = `<span class='hljs-comment'>${histogram.outputPercentileDistribution()}</span>`);	
+							}
 
 						});
 				}, 100)
