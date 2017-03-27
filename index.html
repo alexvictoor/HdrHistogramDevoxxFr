@@ -196,7 +196,7 @@
 
 <section data-background-color="#FFF">
 	<!--<img src="be_above_average.jpg" />-->
-	<h3>DON'T BE MEAN BE ABOVE AVERAGE</h3>
+	<h3>DON'T BE MEAN, BE ABOVE AVERAGE</h3>
 	<img src="normal.png" width="70%" class="no_border_img" />
 	<aside class="notes">
 		Moyenne c'est surtout utile lorsque les valeurs sont réparti suivant une loi normale
@@ -223,6 +223,12 @@ Les percentiles ?
 Le principe on trie les données, ensuite on cherche les 100 valeurs qui permetttent de séparer les valeurs observées en 100 parts égales,
 le 50eme => valeur médiane
 	</aside>
+</section>
+
+<section data-background="iosnoop_hist_full6_ter.png" data-background-size="95%">
+</section>
+
+<section data-background="iosnoop_hist_full6_quar.png" data-background-size="95%">
 </section>
 
 
@@ -258,6 +264,23 @@ Un histogram c'est un outil graphique qui permet de représenter la répartition
 	</aside>	
 </section>
 -->
+
+<section>
+	<h3>Petite expérience</h3>
+	<div style="margin: 0% 10% 0%" align="left">
+	<p>Probabilité d'éviter le 99ème centile:</p>
+	<ul>
+		<li class="fragment">Sur une requête : 0.99</li>
+		<li class="fragment">Sur 2 requêtes : 0.99 * 0.99 = 0.98</li>
+		<li class="fragment">Sur n requêtes : 0.99^n</li>
+	</ul>
+	<br/>
+	<br/>
+	<p class="fragment">Probabilité de tomber sur le 99ème centile au moins sur une requête, parmi n:</p>
+	<h3 align="center" class="fragment" style="font-weight: bold;">1 - 0.99^n</h3>
+	</div>		
+
+</section>
 
 
 <section>
@@ -1323,6 +1346,7 @@ for (int i = 0; i < nbLoop; i++) {
 <ul>
 	<li>"Comment rater ses benchmarks ?" par @pingtimeout</li>
 	<li>"How NOT to Measure Latency?" par @giltene</li>
+	<li><a href="http://latencytipoftheday.blogspot.fr/">Latency Tip Of The Day</a></li>
 	<li>"<a href=" http://psy-lob-saw.blogspot.fr/2015/02/hdrhistogram-better-latency-capture.html">HdrHistogram: A better latency capture method</a>" par @nitsanw</li>
 </ul>
 <h3>&nbsp;</h3>
